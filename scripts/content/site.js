@@ -10,7 +10,10 @@ export const BUILD_DATE = new Date().toISOString().slice(0, 10);
 
 // Build-time integrations. Unset => feature stays disabled (no third-party request).
 const GA_ID = (process.env.GA_MEASUREMENT_ID || "").trim();
-const AD_PUB_ID = (process.env.ADSENSE_PUB_ID || "").trim();
+// Publisher id for Google AdSense. The global <head> loader is always emitted
+// so AdSense can serve ads site-wide; ad units remain placeholders until
+// ADSENSE_SLOT_TOP / ADSENSE_SLOT_BOTTOM (or per-slot ids) are provided.
+const AD_PUB_ID = (process.env.ADSENSE_PUB_ID || "9073496682747119").trim();
 const AD_SLOT_TOP = (process.env.ADSENSE_SLOT_TOP || "0000000000").trim();
 const AD_SLOT_BOTTOM = (process.env.ADSENSE_SLOT_BOTTOM || "0000000000").trim();
 

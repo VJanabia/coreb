@@ -59,13 +59,15 @@ requests when they are unset:
 
 ```bash
 GA_MEASUREMENT_ID=G-XXXXXXXXXX      # enables async GA4 loader + event bridge
-ADSENSE_PUB_ID=ca-pub-XXXXXXXXXXXX  # enables AdSense loader + real ad units
+ADSENSE_PUB_ID=9073496682747119     # publisher id (default already set; `ca-pub-` is prepended)
 ADSENSE_SLOT_TOP=0000000000         # top ad unit id
 ADSENSE_SLOT_BOTTOM=0000000000      # bottom ad unit id
 ```
 
-Set these as Cloudflare Pages environment variables before the build. Until then, ad slots are
-CLS-safe labeled placeholders and GA4 is a commented-out snippet.
+Set these as Cloudflare Pages environment variables before the build. The AdSense global
+`<head>` loader (`pagead2.googlesyndication.com` with `ca-pub-9073496682747119`) is always
+emitted; ad units stay as CLS-safe labeled placeholders until slot ids are configured. GA4 is a
+commented-out snippet until a measurement id is set.
 
 GA4 events emitted by the game: `game_start`, `level_start`, `level_complete`, `level_failed`,
 `level_retry`, `level_select`, `game_complete`, `sound_toggle`.
