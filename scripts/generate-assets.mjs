@@ -30,6 +30,10 @@ writeFileSync(resolve(publicDir, "_headers"), [
   "/apple-touch-icon.png",
   "  Cache-Control: public, max-age=86400",
   "",
+  "/ads.txt",
+  "  Content-Type: text/plain; charset=utf-8",
+  "  Cache-Control: public, max-age=3600",
+  "",
 ].join("\n"));
 
 // ---------------------------------------------------------------- sitemap.xml
