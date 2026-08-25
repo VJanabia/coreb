@@ -10,3 +10,4 @@ scripts/screenshots/
 
 .DS_Store
 *.log
+.agents/
