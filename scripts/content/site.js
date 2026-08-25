@@ -167,7 +167,10 @@ export function gameI18n(lang) {
     playSub: "500レベル。タップ、クリック、またはスペースキーで発射。",
     continueLabel: "続きから – レベル{0}",
     level: "レベル {0}",
-    ballsLeft: "残り: {0}本",
+    levelOfTotal: "レベル {0} / {1}",
+    pins: "残り: {0}本",
+    pauseLabel: "一時停止",
+    restartLabel: "リスタート",
     levelComplete: "レベル {0} クリア",
     nextLevelSub: "レベル {0} の準備をしよう",
     nextLevel: "次のレベル",
@@ -196,7 +199,10 @@ export function gameI18n(lang) {
     playSub: "500 levels. Tap, click or press Space to shoot.",
     continueLabel: "Continue – Level {0}",
     level: "Level {0}",
-    ballsLeft: "Balls: {0}",
+    levelOfTotal: "Level {0} / {1}",
+    pins: "Pins: {0}",
+    pauseLabel: "Pause",
+    restartLabel: "Restart",
     levelComplete: "Level {0} Complete",
     nextLevelSub: "Get ready for Level {0}",
     nextLevel: "Next Level",
@@ -236,10 +242,12 @@ export function gameSection(lang, filePath) {
   const gameOverLabel = lang === "ja" ? "ゲームオーバー" : "Game Over";
   const pausedLabel = lang === "ja" ? "一時停止" : "Paused";
   const resumeLabel = lang === "ja" ? "再開" : "Resume";
-  const hudLevel = lang === "ja" ? "レベル 1" : "Level 1";
-  const hudBalls = lang === "ja" ? "残り: 5本" : "Balls: 5";
+  const hudLevel = lang === "ja" ? "レベル 1 / 500" : "Level 1 / 500";
+  const hudBalls = lang === "ja" ? "残り: 6本" : "Pins: 6";
   const soundLabel = lang === "ja" ? "サウンド: OFF" : "Sound: OFF";
-  const hint = lang === "ja" ? "タップ / クリック / スペースキーで発射" : "Tap / Click / Space to shoot";
+  const pauseLabel = lang === "ja" ? "一時停止" : "Pause";
+  const restartLabel = lang === "ja" ? "リスタート" : "Restart";
+  const hint = lang === "ja" ? "タップ / クリック / スペースで発射・P 一時停止・R リスタート" : "Tap / Click / Space to shoot · P pause · R restart";
   const modalTitle = lang === "ja" ? "レベルを選ぶ" : "Select a Level";
   const closeLabel = lang === "ja" ? "閉じる" : "Close";
   const ariaGame = lang === "ja" ? "まち針ゲームのプレイエリア。クリックまたはスペースキーで発射します。" : "Coreball game area. Click or press Space to shoot.";
@@ -256,12 +264,13 @@ export function gameSection(lang, filePath) {
     '<div class="overlay-panel" id="overlay-failed" hidden><h2 id="failed-title">' + gameOverLabel + '</h2><p id="failed-sub"></p><div class="overlay-actions"><button type="button" class="btn btn-primary btn-danger" id="btn-retry">' + retryLabel + '</button><button type="button" class="btn" id="btn-levels-failed">' + levelsLabel + "</button></div></div>",
     '<div class="overlay-panel" id="overlay-paused" hidden><h2 id="paused-title">' + pausedLabel + '</h2><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-resume">' + resumeLabel + "</button></div></div>",
     "</div>",
+    '<div class="level-banner" id="level-banner" hidden aria-hidden="true"></div>',
     '<noscript><div class="overlay-panel"><p>' + (lang === "ja" ? "ゲームを開始するには JavaScript を有効にしてください。" : "Please enable JavaScript to play the game.") + "</p></div></noscript>",
     "</div>",
     '<div class="game-status">',
-    '<div class="hud"><span id="hud-level">' + hudLevel + '</span><span id="hud-balls" class="muted">' + hudBalls + "</span></div>",
+    '<div class="hud"><span id="hud-level">' + hudLevel + '</span><span id="hud-dots" class="hud-dots" aria-hidden="true"></span><span id="hud-balls" class="muted">' + hudBalls + "</span></div>",
     '<div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>',
-    '<div class="game-actions"><button type="button" class="btn" id="btn-sound" aria-pressed="false"><span id="sound-label">' + soundLabel + '</span></button><button type="button" class="btn" id="btn-levels">' + levelsLabel + "</button></div>",
+    '<div class="game-actions"><button type="button" class="btn" id="btn-sound" aria-pressed="false"><span id="sound-label">' + soundLabel + '</span></button><button type="button" class="btn" id="btn-pause" aria-pressed="false"><span id="pause-label">' + pauseLabel + '</span></button><button type="button" class="btn" id="btn-restart" aria-label="' + restartLabel + '">↻</button><button type="button" class="btn" id="btn-levels">' + levelsLabel + "</button></div>",
     '<p class="hint">' + hint + "</p>",
     '<p class="sr-only" id="hud-status" aria-live="polite"></p>',
     "</div>",

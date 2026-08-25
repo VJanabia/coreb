@@ -13,7 +13,10 @@ const DEFAULT_I18N: Record<string, string> = {
   playSub: "500 levels. Tap, click or press Space to shoot.",
   continueLabel: "Continue \u2013 Level {0}",
   level: "Level {0}",
-  ballsLeft: "Balls: {0}",
+  levelOfTotal: "Level {0} / {1}",
+  pins: "Pins: {0}",
+  pauseLabel: "Pause",
+  restartLabel: "Restart",
   levelComplete: "Level {0} Complete",
   nextLevelSub: "Get ready for Level {0}",
   nextLevel: "Next Level",
@@ -32,7 +35,7 @@ const DEFAULT_I18N: Record<string, string> = {
   completed: "Level {0} completed",
   currentLevel: "Level {0} (current)",
   statusReady: "Coreball ready. Press Play to start.",
-  statusPlaying: "Level {0}. {1} balls left.",
+  statusPlaying: "Level {0}. {1} pins left.",
   statusFailed: "Game over on level {0}.",
   statusSuccess: "Level {0} complete.",
   statusPaused: "Game paused.",
@@ -75,11 +78,16 @@ const pausedTitle = $<HTMLHeadingElement>("paused-title");
 const btnResume = $<HTMLButtonElement>("btn-resume");
 const hudLevel = $<HTMLSpanElement>("hud-level");
 const hudBalls = $<HTMLSpanElement>("hud-balls");
+const hudDots = $<HTMLSpanElement>("hud-dots");
 const progressFill = $<HTMLDivElement>("progress-fill");
 const hudStatus = $<HTMLParagraphElement>("hud-status");
 const btnSound = $<HTMLButtonElement>("btn-sound");
 const soundLabel = $<HTMLSpanElement>("sound-label");
+const btnPause = $<HTMLButtonElement>("btn-pause");
+const pauseLabel = $<HTMLSpanElement>("pause-label");
+const btnRestart = $<HTMLButtonElement>("btn-restart");
 const btnLevels = $<HTMLButtonElement>("btn-levels");
+const levelBanner = $<HTMLDivElement>("level-banner");
 const modal = $<HTMLDialogElement>("level-modal");
 const modalTitle = $<HTMLHeadingElement>("level-modal-title");
 const modalGrid = $<HTMLDivElement>("level-grid");
@@ -88,6 +96,7 @@ const btnCloseModal = $<HTMLButtonElement>("level-close");
 let progress: Progress = loadProgress();
 let currentLevel = Math.max(1, Math.min(LEVEL_COUNT, progress.unlocked));
 let hasStarted = false;
+let bannerTimer = 0;
 
 const engine = new CoreballEngine();
 const audio = new AudioSynth();
@@ -142,11 +151,17 @@ function handleStateChange(state: string, level: number): void {
     hudStatus.textContent = t("statusPaused");
     focusPrimary(btnResume);
   }
+  const inRun = state === "playing" || state === "paused";
+  btnPause.disabled = !inRun;
+  pauseLabel.textContent = state === "paused" ? t("resume") : t("pauseLabel");
+  btnPause.setAttribute("aria-pressed", state === "paused" ? "true" : "false");
 }
 
 function handleHud(hud: { level: number; ballsLeft: number; attached: number; total: number }): void {
-  hudLevel.textContent = fmt(t("level"), [hud.level]);
-  hudBalls.textContent = fmt(t("ballsLeft"), [hud.ballsLeft]);
+  hudLevel.textContent = fmt(t("levelOfTotal"), [hud.level, LEVEL_COUNT]);
+  hudBalls.textContent = fmt(t("pins"), [hud.ballsLeft]);
+  const dots = Math.min(hud.ballsLeft, 12);
+  hudDots.textContent = "\u25cf ".repeat(dots).trim() + (hud.ballsLeft > 12 ? " +" + (hud.ballsLeft - 12) : "");
   const pct = hud.total > 0 ? Math.round((hud.attached / hud.total) * 100) : 0;
   progressFill.style.width = pct + "%";
   if (engine.state === "playing") {
@@ -158,6 +173,12 @@ function startLevel(id: number): void {
   currentLevel = Math.max(1, Math.min(LEVEL_COUNT, id));
   engine.startLevel(currentLevel);
   track("level_start", { level: currentLevel });
+  levelBanner.textContent = fmt(t("level"), [currentLevel]);
+  levelBanner.hidden = false;
+  window.clearTimeout(bannerTimer);
+  bannerTimer = window.setTimeout(() => {
+    levelBanner.hidden = true;
+  }, 950);
 }
 
 function play(): void {
@@ -210,6 +231,14 @@ btnLevelsFailed.addEventListener("click", openLevels);
 btnLevels.addEventListener("click", openLevels);
 btnSound.addEventListener("click", toggleSound);
 btnCloseModal.addEventListener("click", closeLevels);
+btnPause.addEventListener("click", () => {
+  if (engine.state === "playing") engine.pause();
+  else if (engine.state === "paused") engine.resume();
+});
+btnRestart.addEventListener("click", () => {
+  track("level_retry", { level: currentLevel });
+  startLevel(currentLevel);
+});
 
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -233,6 +262,14 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     if (engine.state === "ready") play();
     else if (engine.state === "playing") engine.fire();
+  }
+  if (e.code === "KeyP" && !modal.open) {
+    if (engine.state === "playing") engine.pause();
+    else if (engine.state === "paused") engine.resume();
+  }
+  if (e.code === "KeyR" && !modal.open && engine.state !== "loading") {
+    track("level_retry", { level: currentLevel });
+    startLevel(currentLevel);
   }
   if (e.code === "Escape" && modal.open) closeLevels();
 });

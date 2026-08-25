@@ -86,10 +86,14 @@ GA4 events emitted by the game: `game_start`, `level_start`, `level_complete`, `
 
 - 500 deterministic levels generated at build time by `scripts/generate-levels.mjs`.
 - Layouts use a seeded PRNG (`seed = level id`) so every level is reproducible.
-- Difficulty ramps through speed, direction changes, pre-placed pins, and layout types
-  (`normal`, `fast`, `slow`, `accel`, `mirror`, `dense`).
-- Collision fairness is validated at generation time: every gap is wide enough for a perfectly
-  centered shot to pass using the exact in-game collision margin.
+- Every level starts with pre-inserted pins (Level 1 has two) that are real collision objects;
+  the player fills the remaining gaps. The core is kept small so the pins are the visual focus,
+  and the next pin waits visibly below the core.
+- Difficulty ramps through speed, rotation direction, pin counts, and layout patterns
+  (`normal`, `fast`, `slow`, `accel`, `mirror`, `dense`, `cluster`, `narrow`).
+- Collision fairness is validated twice: at generation time (gap-width guarantee) and by
+  `scripts/simulate-collisions.mjs`, which simulates a perfectly centered shot into the widest gap of
+  every level (must attach) and a shot aimed at an occupied angle (must fail).
 
 ## Originality note
 

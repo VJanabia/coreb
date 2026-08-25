@@ -1,7 +1,15 @@
 // Level data model + mapping from the compact generated data file.
 // The generated data (scripts/generate-levels.mjs) is original and deterministic:
 // level N always produces the exact same layout. See scripts/ for the generator.
-export type LevelType = "normal" | "fast" | "slow" | "accel" | "mirror" | "dense";
+export type LevelType =
+  | "normal"
+  | "fast"
+  | "slow"
+  | "accel"
+  | "mirror"
+  | "dense"
+  | "cluster"
+  | "narrow";
 
 export interface Level {
   /** 1-based level id */

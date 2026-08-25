@@ -66,13 +66,13 @@ export const pages = [
         "<h2>How to Play Coreball</h2>" +
         "<ol><li>Press <strong>Play</strong> or tap the game area.</li><li>Watch the core rotate and look for an open gap.</li><li>Click, tap, or press <strong>Space</strong> to fire a pin.</li><li>Land every required pin without touching an existing pin.</li><li>Clear the level to unlock the next one.</li></ol>" +
         "<h2>Coreball Tips</h2>" +
-        "<ul><li>Aim for the widest visible gap, not the one that is about to disappear.</li><li>Find a steady rhythm instead of chasing the rotation with your eyes.</li><li>On faster levels, fire slightly before the gap lines up with your shot.</li><li>Watch for direction changes and accelerating levels in the higher ranges.</li><li>Use the level selector to replay any unlocked level as many times as you like.</li></ul>" +
+        "<ul><li>The colored pin waiting below the core is your next shot — its dashed line marks the flight path.</li><li>Aim for the widest visible gap, not the one that is about to disappear.</li><li>Find a steady rhythm instead of chasing the rotation with your eyes.</li><li>On faster levels, fire slightly before the gap lines up with the dashed shot path.</li><li>Watch for direction changes and accelerating levels in the higher ranges.</li><li>Use the level selector to replay any unlocked level as many times as you like.</li></ul>" +
         "<h2>What is Coreball?</h2>" +
         "<p>Coreball — also searched as core ball, coreball online, or coreball game — is an arcade-style precision game. A large core sits in the center of the screen, and your goal is to attach pins or balls around it. Every successful shot makes the next gap smaller and the timing tighter.</p>" +
         "<p>This version is an independent, fan-made browser game inspired by the classic Coreball-style gameplay. It is not the official or original Coreball, and it is not affiliated with or endorsed by any publisher or website. The code, level data, and graphics here are original.</p>" +
         site.adBottom() +
         "<h2>Coreball Levels</h2>" +
-        "<p>There are 500 levels in this release. Early levels are slow and spacious, while later levels add higher speed, direction changes, pre-placed pins, and denser layouts. Your highest unlocked level is saved in your browser, so you can continue where you left off instead of restarting from Level 1.</p>" +
+        "<p>There are 500 levels in this release. Every level starts with pins already inserted into the core — Level 1 begins with two — and your job is to squeeze the remaining pins into the open gaps. Later levels add higher speed, direction changes, more pre-inserted pins, and denser layouts. Your highest unlocked level is saved in your browser, so you can continue where you left off instead of restarting from Level 1.</p>" +
         "<h2>Frequently Asked Questions</h2>" +
         "<div class='faq'>" +
         homeFaq.map((f) => "<details><summary>" + f.q + "</summary><p class='a'>" + f.a + "</p></details>").join("") +
@@ -156,7 +156,7 @@ export const pages = [
         "<p>The projectile travels from the bottom of the screen toward the center of the core. When its head reaches the core, it attaches at the angle you chose and starts rotating with the core. If its head or shaft touches an existing pin first, the run fails.</p>" +
         "<p>The game uses real angle, rotation, and collision calculations rather than a scripted animation, so the timing you see is the timing you get. Each level is generated deterministically, which means Level 27 always has the same layout every time you play it.</p>" +
         "<h2>Levels and Progress</h2>" +
-        "<p>The first release has 500 levels. Levels 1–10 are slow and spacious, then speed, direction changes, pre-placed pins, and denser patterns are introduced gradually. Your progress is saved locally in your browser and you can continue from your highest unlocked level.</p>" +
+        "<p>The first release has 500 levels. Every level starts with a few pins already inserted — Level 1 has two. Early levels are slow and spacious, then speed, direction changes, more pre-inserted pins, and denser patterns ramp up gradually. Your progress is saved locally in your browser and you can continue from your highest unlocked level.</p>" +
         "<h2>Mobile Play</h2>" +
         "<p>The game is designed for both iPhone Safari and Android Chrome. The canvas resizes to your screen, touch targets are large, and the page does not scroll horizontally while you play.</p>" +
         "<p><a class='btn btn-primary' href='/'>Play Coreball Now</a></p>" +
@@ -204,7 +204,7 @@ export const pages = [
         "<h2>Practice with the Level Selector</h2>" +
         "<p>Every unlocked level can be replayed as many times as you want. If a level is giving you trouble, replay it until the pattern feels familiar — then move on with confidence.</p>" +
         "<h2>Keep Your First Shot Calm</h2>" +
-        "<p>There is no timer and no penalty for waiting. The first pin on an empty level is the easiest shot you will get, so use it to settle into the rhythm of that specific speed.</p>" +
+        "<p>There is no timer and no penalty for waiting. The first few shots of a fresh level land in wide-open gaps, so use them to settle into that level's rotation speed before the spacing gets tight.</p>" +
         "<p><a class='btn btn-primary' href='/'>Play Coreball Now</a></p>" +
         "</main>";
     },
