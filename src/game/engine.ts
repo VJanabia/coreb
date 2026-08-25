@@ -42,14 +42,15 @@ interface Projectile {
 
 // Visual proportions (kept in sync with scripts/generate-levels.mjs).
 // The core is intentionally small; the pins are the visual focus.
-const CORE_RATIO = 0.22;   // core radius relative to min(canvas w,h)
-const SHAFT_RATIO = 0.6;   // shaft length relative to core radius
+const CORE_RATIO = 0.18;   // core radius relative to min(canvas w,h)
+const SHAFT_RATIO = 0.72;  // shaft length relative to core radius
 const HEAD_BASE = 0.135;
 const HEAD_PER = 0.0016;
 const HEAD_MIN = 0.08;
 const MARGIN = 0.8;
-const SHAFT_MARGIN = 1.25;
-const WINDUP = 0.075;      // short pre-launch cue before the pin flies
+const SHAFT_MARGIN = 1.0;
+const WINDUP = 0.04;       // short pre-launch cue before the pin flies
+const MAX_SPEED = (95 * Math.PI) / 180; // rotation cap (rad/s)
 
 const PIN_COLORS = [
   "#e5484d", "#f76b15", "#ffb224", "#46a758", "#12a594",
@@ -115,8 +116,8 @@ export class CoreballEngine {
     this.headR = Math.max(5.5, this.R * scale);
     this.shaftLen = this.R * SHAFT_RATIO;
     this.rh = this.R + this.shaftLen;
-    this.projSpeed = Math.max(w, h) * 1.5;
-    this.readyOffset = Math.max(12, this.headR * 1.2);
+    this.projSpeed = Math.max(w, h) * 4.0;
+    this.readyOffset = Math.max(18, this.headR * 2.2);
   }
 
   startLevel(id: number): void {
@@ -199,7 +200,7 @@ export class CoreballEngine {
     this.time += dt;
     if (this.state === "playing" || this.state === "ready") {
       const accel = this.level?.type === "accel" ? 1 + 0.025 * this.attached : 1;
-      this.speed = this.baseSpeed * accel;
+      this.speed = Math.min(this.baseSpeed * accel, MAX_SPEED);
       this.angle += this.speed * this.dir * dt;
     } else {
       this.speed = 0;
@@ -298,8 +299,9 @@ export class CoreballEngine {
       if (distToSegment(p.x, p.y, ax, ay, hx, hy) < shaftThreshold) return this.fail(hx, hy, pin);
       // pin head vs projectile shaft (knob..tip)
       if (distToSegment(hx, hy, p.x, p.y, tipX, tipY) < shaftThreshold) return this.fail(hx, hy, pin);
-      // tip vs pin shaft
-      if (distToSegment(tipX, tipY, ax, ay, hx, hy) < shaftThreshold) return this.fail(hx, hy, pin);
+      // tip vs pin shaft: the tip is thin, so it needs a tighter threshold than
+      // the shaft-body check (otherwise fair gaps near the core falsely fail)
+      if (distToSegment(tipX, tipY, ax, ay, hx, hy) < this.headR * 0.85) return this.fail(hx, hy, pin);
     }
   }
 
@@ -489,55 +491,83 @@ export class CoreballEngine {
   }
 
   private drawReadyPin(ctx: CanvasRenderingContext2D): void {
+    // NOTE: called inside the translated context -> use center-relative coords
     const color = pinColor(this.pins.length);
-    const y = this.h - this.readyOffset;
+    const y = (this.h - this.readyOffset) - this.cy; // knob center, center-relative
+    const tipY = y - this.shaftLen;
+    const coreBottom = this.R;
     // dashed shot-path guide from the pin tip to the core
     ctx.beginPath();
     ctx.setLineDash([5, 6]);
-    ctx.moveTo(this.cx, y - this.shaftLen - 4);
-    ctx.lineTo(this.cx, this.cy + this.R);
+    ctx.moveTo(0, tipY - 4);
+    ctx.lineTo(0, coreBottom);
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "rgba(96,108,136,0.35)";
     ctx.stroke();
     ctx.setLineDash([]);
-    // gentle idle pulse so it reads as the next pin to shoot
-    const pulse = 0.92 + 0.08 * Math.sin(this.time * 5);
+    // animated chevrons rising toward the core: "tap me, I fly up"
+    for (let i = 0; i < 3; i++) {
+      const ph = (this.time * 0.9 + i / 3) % 1;
+      const cyv = tipY - 6 - ph * (tipY - 6 - coreBottom - 6);
+      const alpha = (0.55 * (1 - ph)).toFixed(3);
+      ctx.beginPath();
+      ctx.moveTo(-6, cyv + 3);
+      ctx.lineTo(0, cyv - 3);
+      ctx.lineTo(6, cyv + 3);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(14,138,240," + alpha + ")";
+      ctx.stroke();
+    }
+    // idle pulse so it reads as the next pin to shoot
+    const pulse = 0.82 + 0.18 * Math.sin(this.time * 5);
     ctx.globalAlpha = pulse;
+    // glow ring around the head
     ctx.beginPath();
-    ctx.moveTo(this.cx, y - this.headR * 0.9);
-    ctx.lineTo(this.cx, y - this.shaftLen);
-    ctx.lineWidth = Math.max(2, this.headR * 0.26);
+    ctx.arc(0, y, this.headR * 1.55, 0, Math.PI * 2);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(14,138,240,0.35)";
+    ctx.stroke();
+    // shaft (full needle body pointing at the core)
+    ctx.beginPath();
+    ctx.moveTo(0, y - this.headR * 0.9);
+    ctx.lineTo(0, tipY);
+    ctx.lineWidth = Math.max(2.2, this.headR * 0.28);
     ctx.lineCap = "round";
     ctx.strokeStyle = "#98a3ba";
     ctx.stroke();
+    // head (slightly larger so it is unmistakable)
+    const hr = this.headR * 1.12;
     ctx.beginPath();
-    ctx.arc(this.cx, y, this.headR, 0, Math.PI * 2);
+    ctx.arc(0, y, hr, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(20,28,48,0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(20,28,48,0.3)";
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(this.cx - this.headR * 0.3, y - this.headR * 0.32, this.headR * 0.28, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.arc(-hr * 0.3, y - hr * 0.32, hr * 0.28, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
     ctx.fill();
     ctx.globalAlpha = 1;
   }
 
   private drawProjectile(ctx: CanvasRenderingContext2D): void {
+    // NOTE: called inside the translated context -> use center-relative coords
     const p = this.projectile;
-    const dx = this.cx - p.x;
-    const dy = this.cy - p.y;
-    const d = Math.hypot(dx, dy) || 1;
-    const nx = dx / d;
-    const ny = dy / d;
+    const kx = p.x - this.cx;
+    const ky = p.y - this.cy;
+    const d = Math.hypot(kx, ky) || 1;
+    const nx = -kx / d; // toward the center
+    const ny = -ky / d;
     const windup = p.phase === "windup";
     const progress = windup ? p.phaseT / WINDUP : 1;
     const scale = windup ? 1 + 0.16 * Math.sin(progress * Math.PI) : 1;
-    const tipX = p.x + nx * this.shaftLen;
-    const tipY = p.y + ny * this.shaftLen;
+    const tipX = kx + nx * this.shaftLen;
+    const tipY = ky + ny * this.shaftLen;
     ctx.beginPath();
-    ctx.moveTo(p.x + nx * this.headR * 0.9, p.y + ny * this.headR * 0.9);
+    ctx.moveTo(kx + nx * this.headR * 0.9, ky + ny * this.headR * 0.9);
     ctx.lineTo(tipX, tipY);
     ctx.lineWidth = Math.max(2, this.headR * 0.26);
     ctx.lineCap = "round";
@@ -546,13 +576,13 @@ export class CoreballEngine {
     if (windup) {
       const ringAlpha = (1 - progress) * 0.5;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, this.headR * (1.5 + 0.5 * progress), 0, Math.PI * 2);
+      ctx.arc(kx, ky, this.headR * (1.5 + 0.5 * progress), 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(255,255,255," + ringAlpha.toFixed(3) + ")";
       ctx.lineWidth = 2;
       ctx.stroke();
     }
     ctx.beginPath();
-    ctx.arc(p.x, p.y, this.headR * scale, 0, Math.PI * 2);
+    ctx.arc(kx, ky, this.headR * scale, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
     ctx.fill();
     ctx.lineWidth = 1;

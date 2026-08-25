@@ -10,6 +10,8 @@
   "scripts": {
     "gen": "node scripts/generate-levels.mjs && node scripts/simulate-collisions.mjs && node scripts/generate-assets.mjs && node scripts/generate-pages.mjs",
     "test:game": "node scripts/generate-levels.mjs && node scripts/simulate-collisions.mjs",
+    "test:browser": "node scripts/browser-test.mjs",
+    "test:visual": "node scripts/browser-visual.mjs",
     "dev": "npm run gen && vite",
     "build": "npm run gen && vite build",
     "postbuild": "node scripts/verify-dist.mjs",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.0"
   }

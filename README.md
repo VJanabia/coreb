@@ -34,10 +34,17 @@ npm run dev        # generate pages + Vite dev server
 npm run build      # generate everything + static production build
 npm run verify     # pre-launch SEO/build self-check against dist/
 npm run typecheck  # TypeScript check
+npm run test:game  # regenerate levels + 500-level collision simulation
+npm run test:browser  # Playwright gameplay test (needs `npm run preview` on :4173)
+npm run test:visual   # Playwright visual checks (core size, ready pin, layout variety)
 ```
 
 The build also runs `postbuild` (`scripts/verify-dist.mjs`) automatically to confirm every page
 has its title, description, canonical, bidirectional hreflang, H1, JSON-LD, and game canvas.
+`npm run gen` additionally runs `scripts/simulate-collisions.mjs`, which verifies for all 500
+levels that a perfectly centered shot into the widest gap attaches and a shot aimed at an occupied
+angle fails. `scripts/browser-test.mjs` and `scripts/browser-visual.mjs` drive a real browser
+(Playwright, Edge channel) to verify gameplay, ready pin rendering, HUD, game over, and mobile.
 
 ## Cloudflare Pages deployment
 
@@ -86,9 +93,10 @@ GA4 events emitted by the game: `game_start`, `level_start`, `level_complete`, `
 
 - 500 deterministic levels generated at build time by `scripts/generate-levels.mjs`.
 - Layouts use a seeded PRNG (`seed = level id`) so every level is reproducible.
-- Every level starts with pre-inserted pins (Level 1 has two) that are real collision objects;
-  the player fills the remaining gaps. The core is kept small so the pins are the visual focus,
-  and the next pin waits visibly below the core.
+- Every level starts with 2-15 pre-inserted pins (Level 1 has two; most levels use 3-12) that
+  are real collision objects; the player fills the remaining gaps up to a 30-pin ring. The core is
+  kept small so the pins are the visual focus, and the next pin waits visibly below the core with
+  an animated launch guide.
 - Difficulty ramps through speed, rotation direction, pin counts, and layout patterns
   (`normal`, `fast`, `slow`, `accel`, `mirror`, `dense`, `cluster`, `narrow`).
 - Collision fairness is validated twice: at generation time (gap-width guarantee) and by

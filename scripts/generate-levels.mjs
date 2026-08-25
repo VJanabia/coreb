@@ -11,18 +11,26 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const LEVEL_COUNT = 500;
 
 // Must stay in sync with the game's constants (src/game/engine.ts).
-const SHAFT_RATIO = 0.6;       // shaft length relative to core radius (long, visible pins)
+const SHAFT_RATIO = 0.72;      // shaft length relative to core radius (long, visible pins)
 const HEAD_BASE = 0.135;       // pin head radius at small pin counts
 const HEAD_PER = 0.0016;       // shrink per extra pin
 const HEAD_MIN = 0.08;
 const GAME_MARGIN = 0.8;       // game fails when head distance < 2*headR*MARGIN
-const SAFETY = 1.05;           // keep gaps >= threshold * SAFETY so a centered shot always passes
+const SHAFT_FACTOR = 1.0;      // pin head vs projectile shaft threshold, in headR units
+const FLIGHT_SECONDS = 0.035;  // projectile fly time (windup is excluded: no collision there)
+const MARGIN_DEG = 2;          // extra gap budget so the timing window stays humane
 
 const headScale = (total) => Math.max(HEAD_MIN, HEAD_BASE - HEAD_PER * total);
 const rhRatio = (total) => 1 + SHAFT_RATIO + headScale(total);
-const minGapDeg = (total) => {
-  const s = Math.min(0.999, (headScale(total) * 2 * GAME_MARGIN * SAFETY) / rhRatio(total));
-  return (2 * Math.asin(s) * 180) / Math.PI;
+// The minimum gap a player can pass, including how far the core rotates while
+// the pin flies. Combines the head-head clearance at the ring and the
+// shaft-clearance sweep during flight.
+const minGapDeg = (total, spDeg = 0) => {
+  const hh = Math.asin(Math.min(0.999, (headScale(total) * 2 * GAME_MARGIN) / rhRatio(total)));
+  const headHeadGap = 2 * ((hh * 180) / Math.PI);
+  const shaftArc = Math.asin(Math.min(0.999, (headScale(total) * SHAFT_FACTOR) / rhRatio(total)));
+  const sweepGap = 2 * (((shaftArc * 180) / Math.PI) + spDeg * FLIGHT_SECONDS);
+  return Math.max(headHeadGap, sweepGap) + MARGIN_DEG;
 };
 
 function mulberry32(seed) {
@@ -36,21 +44,24 @@ function mulberry32(seed) {
 }
 
 // ---------------------------------------------------------------- difficulty curve
-// initial pins: every level starts with 2..16 pre-inserted pins
+// initial pins: 2..15 pre-inserted pins, HARD cap at 15.
+// Most levels sit in the 3..12 range; only the hardest ones approach 15.
 function initialPinsFor(id) {
-  if (id <= 20) return 2 + Math.floor((id - 1) / 3);        // 2..8
-  if (id <= 60) return 8 + Math.floor((id - 21) / 5);       // 8..15
-  if (id <= 200) return 14 + (id % 3 === 0 ? 1 : 0);        // 14..15
-  return 15 + (id % 4 === 0 ? 1 : 0);                       // 15..16
+  let n;
+  if (id <= 10) n = 2 + Math.floor((id - 1) / 2);           // 2..6
+  else if (id <= 30) n = 4 + Math.floor((id - 11) / 4);     // 4..8
+  else if (id <= 60) n = 6 + Math.floor((id - 31) / 6);     // 6..10
+  else if (id <= 100) n = 8 + Math.floor((id - 61) / 9);    // 8..12
+  else if (id <= 200) n = 10 + Math.floor((id - 101) / 25); // 10..13
+  else if (id <= 350) n = 12 + (id % 5 === 0 ? 1 : 0);      // 12..13
+  else n = 14 + (id % 3 === 0 ? 1 : 0);                     // 14..15
+  return Math.min(15, n);
 }
 
-// total pins on the finished core (initial + shots); capped so gaps stay fair
+// total pins on the finished core (initial + shots); capped at 30 so the
+// finished ring never looks overcrowded and gaps always stay fair.
 function totalTarget(id) {
-  return Math.min(8 + Math.floor((id - 1) * 1.15), 36);
-}
-
-function shotsFor(id) {
-  return Math.max(4, totalTarget(id) - initialPinsFor(id));
+  return Math.min(8 + Math.floor((id - 1) * 1.1), 30);
 }
 
 function typeFor(id, rnd) {
@@ -64,18 +75,18 @@ function typeFor(id, rnd) {
 }
 
 function baseSpeed(id) {
-  if (id <= 10) return 38 + (id - 1) * 1.6;
-  if (id <= 30) return 54 + (id - 11) * 1.2;
-  if (id <= 60) return 80 + (id - 31) * 0.75;
-  if (id <= 100) return 104 + (id - 61) * 0.6;
-  if (id <= 200) return 118 + (id - 101) * 0.32;
-  if (id <= 350) return 152 + (id - 201) * 0.16;
-  return 178 + (id - 351) * 0.18;
+  if (id <= 10) return 24 + (id - 1) * 1.6;        // 24..38
+  if (id <= 30) return 40 + (id - 11) * 0.6;       // 40..51
+  if (id <= 60) return 52 + (id - 31) * 0.28;      // 52..60
+  if (id <= 100) return 61 + (id - 61) * 0.12;     // 61..66
+  if (id <= 200) return 66 + (id - 101) * 0.06;    // 66..72
+  if (id <= 350) return 72 + (id - 201) * 0.04;    // 72..78
+  return 78 + (id - 351) * 0.04;                   // 78..84
 }
 
 const TYPE_SPEED = {
-  normal: 1, fast: 1.18, slow: 0.82, accel: 0.92,
-  mirror: 1, dense: 1.08, cluster: 1.0, narrow: 1.05,
+  normal: 1, fast: 1.08, slow: 0.85, accel: 0.94,
+  mirror: 1, dense: 1.03, cluster: 1.0, narrow: 0.95,
 };
 
 function difficultyOf(id) {
@@ -190,14 +201,108 @@ function narrowAngles(total, needGap, rnd) {
   return { angles: sorted, clusterCount: 0, narrowGapIdx: minIdx };
 }
 
+// ---------------------------------------------------------------- initial-pin shapes
+// Each level gets a distinct, fixed, reproducible arrangement of its initial pins:
+// even spread / dense block at top/bottom/left/right / two opposite blocks /
+// irregular scatter / one dense side + spread. Cluster and narrow types keep
+// their special rules (dense zone stays pre-inserted; narrow gap stays open).
+function pickInitialIndices(total, initial, type, rnd, narrowGapIdx, clusterCount) {
+  if (type === 'cluster' && clusterCount > 0) {
+    const take = Math.min(initial, clusterCount);
+    const out = Array.from({ length: take }, (_, i) => i);
+    const seen = new Set(out);
+    for (let i = total - 1; i >= 0 && out.length < initial; i--) {
+      if (!seen.has(i)) {
+        seen.add(i);
+        out.push(i);
+      }
+    }
+    return out;
+  }
+  if (type === 'narrow' && typeof narrowGapIdx === 'number') {
+    const start = (narrowGapIdx + 1) % total;
+    return Array.from({ length: initial }, (_, i) => (start + i) % total);
+  }
+  const shapes = ['block', 'even', 'block', 'twoBlocks', 'irregular', 'block', 'denseSide', 'even'];
+  const shape = shapes[Math.floor(rnd() * shapes.length)];
+  const step = 360 / total;
+  let out = [];
+  switch (shape) {
+    case 'block': {
+      const regions = [0, 90, 180, 270];
+      const center = regions[Math.floor(rnd() * regions.length)];
+      const span = (initial - 1) * step;
+      const startAngle = ((center - span / 2) % 360 + 360) % 360;
+      const startIdx = Math.round(startAngle / step) % total;
+      out = Array.from({ length: initial }, (_, i) => (startIdx + i) % total);
+      break;
+    }
+    case 'even': {
+      const off = Math.floor(rnd() * total);
+      out = Array.from({ length: initial }, (_, i) => (off + Math.round((i * total) / initial)) % total);
+      break;
+    }
+    case 'twoBlocks': {
+      const s1 = Math.ceil(initial / 2);
+      const s2 = initial - s1;
+      const start = Math.floor(rnd() * total);
+      out = Array.from({ length: s1 }, (_, i) => (start + i) % total);
+      const start2 = (start + Math.floor(total / 2)) % total;
+      for (let i = 0; i < s2; i++) out.push((start2 + i) % total);
+      break;
+    }
+    case 'irregular': {
+      const idx = Array.from({ length: total }, (_, i) => i);
+      for (let i = idx.length - 1; i > 0; i--) {
+        const j = Math.floor(rnd() * (i + 1));
+        [idx[i], idx[j]] = [idx[j], idx[i]];
+      }
+      out = idx.slice(0, initial);
+      break;
+    }
+    case 'denseSide': {
+      const dense = Math.max(2, Math.ceil(initial * 0.6));
+      const start = Math.floor(rnd() * total);
+      out = Array.from({ length: dense }, (_, i) => (start + i) % total);
+      const rest = initial - dense;
+      const spread = Math.max(1, Math.floor(total / Math.max(1, rest)));
+      const off = Math.floor(rnd() * total);
+      for (let i = 0; i < rest; i++) out.push((off + i * spread) % total);
+      break;
+    }
+  }
+  const seen = new Set();
+  const unique = [];
+  for (const i of out) {
+    if (!seen.has(i)) {
+      seen.add(i);
+      unique.push(i);
+    }
+  }
+  for (let i = 0; i < total && unique.length < initial; i++) {
+    if (!seen.has(i)) {
+      seen.add(i);
+      unique.push(i);
+    }
+  }
+  return unique.slice(0, initial);
+}
+
 // ---------------------------------------------------------------- level builder
 function buildLevel(id) {
   const rnd = mulberry32(id * 2654435761 + 1013904223);
   const type = typeFor(id, rnd);
-  const shots = shotsFor(id);
   const initial = initialPinsFor(id);
-  const total = shots + initial;
-  const needGap = minGapDeg(total);
+  let sp = Math.round(baseSpeed(id) * TYPE_SPEED[type] * 100) / 100;
+  // choose the largest total whose base gap can fit the sweep-aware requirement
+  let total = Math.min(totalTarget(id), 30);
+  while (total > initial + 4 && minGapDeg(total, sp) > 360 / total) total--;
+  // safety: if even the floor is too tight, ease the speed down
+  while (sp > 20 && minGapDeg(total, sp) > 360 / total) {
+    sp = Math.round(sp * 0.95 * 100) / 100;
+  }
+  const shots = total - initial;
+  const needGap = minGapDeg(total, sp);
 
   let layout = null;
   if (type === "cluster") layout = clusterAngles(total, needGap, rnd);
@@ -216,23 +321,13 @@ function buildLevel(id) {
     }
   }
 
-  // deterministic pick of the pre-inserted pins
-  let ipIdx;
-  if (type === "cluster" && layout.clusterCount > 0) {
-    // the dense cluster is already inserted; the player fills the open side
-    ipIdx = Array.from({ length: layout.clusterCount }, (_, i) => i);
-  } else if (type === "narrow" && typeof layout.narrowGapIdx === "number") {
-    // insert pins on the far side of the narrow gap so it stays visible
-    const start = (layout.narrowGapIdx + 1) % total;
-    ipIdx = Array.from({ length: initial }, (_, i) => (start + i) % total);
-  } else {
-    // contiguous block => one big open arc to fill (a readable "puzzle")
-    const start = Math.floor(rnd() * total);
-    ipIdx = Array.from({ length: initial }, (_, i) => (start + i) % total);
-  }
+  // deterministic pick of the pre-inserted pins (one of several fixed shapes)
+  const ipIdx = pickInitialIndices(total, initial, type, rnd, layout.narrowGapIdx, layout.clusterCount);
   const ip = ipIdx.map((i) => angles[i]).sort((a, b) => a - b);
+  if (ip.length !== initial) {
+    throw new Error("level " + id + ": initial pick size " + ip.length + " != " + initial);
+  }
 
-  let sp = Math.round(baseSpeed(id) * TYPE_SPEED[type] * 100) / 100;
   const dirProb = id >= 250 ? 0.5 : id >= 80 ? 0.35 : id >= 21 ? 0.2 : 0;
   const dir = id >= 21 ? (rnd() < dirProb ? -1 : 1) : 1;
 

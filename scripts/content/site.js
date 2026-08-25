@@ -64,7 +64,9 @@ export function adBottom() {
 }
 
 export function adUnit(slot, compact = false) {
-  if (!AD_PUB_ID) {
+  // "0000000000" is the sentinel for "no real ad unit id configured yet":
+  // keep the CLS-safe placeholder instead of pushing an invalid ad request.
+  if (!AD_PUB_ID || slot === "0000000000") {
     const cls = compact ? "ad-slot ad-slot--compact" : "ad-slot";
     return '<div class="' + cls + '" aria-hidden="true"><span>Advertisement</span></div>';
   }

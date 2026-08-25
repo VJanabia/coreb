@@ -7,8 +7,10 @@ const src = readFileSync(new URL("../src/game/data/levels.generated.ts", import.
 const levels = JSON.parse(src.match(/export const LEVELS = (\[[\s\S]*\]);/)[1]);
 
 // engine constants (keep in sync with src/game/engine.ts)
-const SHAFT_RATIO = 0.6, HEAD_BASE = 0.135, HEAD_PER = 0.0016, HEAD_MIN = 0.08;
-const MARGIN = 0.8, SHAFT_MARGIN = 1.25;
+const SHAFT_RATIO = 0.72, HEAD_BASE = 0.135, HEAD_PER = 0.0016, HEAD_MIN = 0.08;
+const MARGIN = 0.8, SHAFT_MARGIN = 1.0;
+const WINDUP = 0.04;
+const MAX_SPEED = (95 * Math.PI) / 180;
 
 const headScale = (n) => Math.max(HEAD_MIN, HEAD_BASE - HEAD_PER * n);
 const deg = (d) => (d * Math.PI) / 180;
@@ -23,28 +25,30 @@ function distSeg(px, py, ax, ay, bx, by) {
 
 function simulate(level, fireDelay) {
   const R = 100;
+  const m = R / 0.18; // canvas min-dim implied by core ratio
   const total = level.ip.length + level.q;
   const headR = R * headScale(total);
   const shaftLen = R * SHAFT_RATIO;
   const rh = R + shaftLen;
   const threshold = headR * 2 * MARGIN;
   const shaftThreshold = headR * SHAFT_MARGIN;
-  const speed = deg(level.sp) * level.d; // rad/s with direction
-  const projSpeed = 300 * 1.5; // px/s (arbitrary canvas)
-  const launchR = rh + headR + 14; // knob radius at fire
-  const cx = 300, cy = 300;
+  const speed = Math.min(deg(level.sp), MAX_SPEED) * level.d; // rad/s with direction
+  const projSpeed = m * 4.0;
+  const readyOffset = Math.max(18, headR * 2.2);
+  const cx = m / 2, cy = m / 2;
+  const launchR = m / 2 - readyOffset; // knob radius at fire
   let angle = 0;
   const pins = level.ip.map((a) => deg(a));
-  let phase = "windup", t = 0, windup = 0.075;
+  let phase = "windup", t = 0;
   let knobX = cx, knobY = cy + launchR;
   const dt = 1 / 240;
   let simT = 0;
   while (simT < fireDelay) { angle += speed * dt; simT += dt; }
-  // windup then fly
+  // windup (no collision) then fly
   let safety = 0;
   while (phase !== "done" && safety++ < 200000) {
     angle += speed * dt;
-    if (phase === "windup") { t += dt; if (t >= windup) phase = "fly"; simT += dt; continue; }
+    if (phase === "windup") { t += dt; if (t >= WINDUP) phase = "fly"; simT += dt; continue; }
     const dx = cx - knobX, dy = cy - knobY;
     const d = Math.hypot(dx, dy);
     if (d <= rh) { phase = "done"; break; }
@@ -60,7 +64,7 @@ function simulate(level, fireDelay) {
       if (dist(knobX, knobY, hx, hy) < threshold) return "fail-head";
       if (distSeg(knobX, knobY, ax, ay, hx, hy) < shaftThreshold) return "fail-shaft";
       if (distSeg(hx, hy, knobX, knobY, tipX, tipY) < shaftThreshold) return "fail-shaft2";
-      if (distSeg(tipX, tipY, ax, ay, hx, hy) < shaftThreshold) return "fail-tip";
+      if (distSeg(tipX, tipY, ax, ay, hx, hy) < headR * 0.85) return "fail-tip";
     }
   }
   return "ok";
@@ -82,11 +86,14 @@ function widestGapCenter(level) {
 function check(levelId) {
   const lv = levels[levelId - 1];
   const R = 100;
+  const m = R / 0.18;
   const total = lv.ip.length + lv.q;
+  const headR = R * headScale(total);
   const rh = R * (1 + SHAFT_RATIO);
-  const launchR = rh + R * headScale(total) + 14;
-  const projSpeed = 300 * 1.5;
-  const flight = (launchR - rh) / projSpeed + 0.075; // windup + fly
+  const readyOffset = Math.max(18, headR * 2.2);
+  const launchR = m / 2 - readyOffset;
+  const projSpeed = m * 4.0;
+  const flight = (launchR - rh) / projSpeed + WINDUP; // windup + fly (no collision during windup)
   const speedRad = deg(lv.sp);
   const rotDuringFlight = speedRad * flight * (180 / Math.PI);
   const mid = widestGapCenter(lv);
