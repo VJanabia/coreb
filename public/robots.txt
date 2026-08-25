@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://coreball.online/sitemap.xml
