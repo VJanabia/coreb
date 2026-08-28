@@ -73,7 +73,6 @@ export const pages = [
         site.adBottom() +
         "<h2>Coreball Levels</h2>" +
         "<p>There are 500 levels in this release. Every level starts with pins already inserted into the core — Level 1 begins with two — and your job is to squeeze the remaining pins into the open gaps. Later levels add higher speed, direction changes, more pre-inserted pins, and denser layouts. Your highest unlocked level is saved in your browser, so you can continue where you left off instead of restarting from Level 1.</p>" +
-        site.nativeBannerSlot() +
         "<h2>Frequently Asked Questions</h2>" +
         "<div class='faq'>" +
         homeFaq.map((f) => "<details><summary>" + f.q + "</summary><p class='a'>" + f.a + "</p></details>").join("") +

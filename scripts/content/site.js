@@ -17,16 +17,6 @@ const AD_PUB_ID = (process.env.ADSENSE_PUB_ID || "9073496682747119").trim();
 const AD_SLOT_TOP = (process.env.ADSENSE_SLOT_TOP || "0000000000").trim();
 const AD_SLOT_BOTTOM = (process.env.ADSENSE_SLOT_BOTTOM || "0000000000").trim();
 
-// Secondary ad network (ProfitablerateCPMNetwork). Toggle off with AD_NETWORK_ENABLED=0.
-const AD_NETWORK_ENABLED = (process.env.AD_NETWORK_ENABLED || "1") === "1";
-const ADNET_NATIVE = "bbba1a441b21e913346710c8cfd9734d";
-const ADNET_NATIVE_DOMAIN = "pl31067534.profitableratecpmnetwork.com";
-const ADNET_POP = "6d99edcb65164b79a1cd4a5ef422f2bb";
-const ADNET_POP_DOMAIN = "pl31067532.profitableratecpmnetwork.com";
-const ADNET_SOCIAL = "2a1c1af9ca5db8e53c499fdf3fca6dbe";
-const ADNET_SOCIAL_DOMAIN = "pl31067535.profitableratecpmnetwork.com";
-const ADNET_SMART = "https://www.profitableratecpmnetwork.com/hiuchyvb?key=b6f9dc9f15aedbe3128f4ac8d0a82471";
-
 export function escapeHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -63,33 +53,6 @@ function adsLoaderHead() {
   if (!AD_PUB_ID) return "";
   return "<link rel=\"preconnect\" href=\"https://pagead2.googlesyndication.com\">" +
     "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-" + escapeHtml(AD_PUB_ID) + "\" crossorigin=\"anonymous\"></script>";
-}
-
-// Secondary ad network (ProfitablerateCPMNetwork): head tags.
-// Native invoke is async; Popunder + SocialBar are deferred so they never block
-// first paint / LCP.
-function adNetworkHead() {
-  if (!AD_NETWORK_ENABLED) return "";
-  return '<link rel="preconnect" href="https://' + ADNET_NATIVE_DOMAIN + '">' +
-    '<link rel="preconnect" href="https://' + ADNET_POP_DOMAIN + '">' +
-    '<link rel="preconnect" href="https://' + ADNET_SOCIAL_DOMAIN + '">' +
-    '<script async="async" data-cfasync="false" src="https://' + ADNET_NATIVE_DOMAIN + '/' + ADNET_NATIVE + '/invoke.js"></script>' +
-    '<script async data-cfasync="false" src="https://' + ADNET_POP_DOMAIN + '/6d/99/ed/' + ADNET_POP + '.js"></script>' +
-    '<script async data-cfasync="false" src="https://' + ADNET_SOCIAL_DOMAIN + '/2a/1c/1a/' + ADNET_SOCIAL + '.js"></script>';
-}
-
-// NativeBanner container placed in a labeled content slot (away from game controls).
-export function nativeBannerSlot() {
-  if (!AD_NETWORK_ENABLED) {
-    return '<div class="ad-slot ad-slot--native" aria-hidden="true"><span>Advertisement</span></div>';
-  }
-  return '<div class="ad-slot ad-slot--native"><span class="ad-label">Advertisement</span><div id="container-' + ADNET_NATIVE + '"></div></div>';
-}
-
-// Smartlink as a discreet sponsored footer link.
-export function smartLink() {
-  if (!AD_NETWORK_ENABLED) return "";
-  return '<a class="sponsored-link" href="' + ADNET_SMART + '" rel="sponsored noopener nofollow" target="_blank">Sponsored</a>';
 }
 
 export function adTop() {
@@ -153,7 +116,6 @@ export function headMeta({ lang, path, title, description, imageAlt, jsonLd, rob
     "<style>" + CSS + "</style>",
     gaHead(),
     adsLoaderHead(),
-    adNetworkHead(),
     jsonLdTags,
   ];
   return parts.filter(Boolean).join("\n");
@@ -177,13 +139,13 @@ export function siteFooter(lang) {
       footerCol("ゲーム", [["まち針ゲームを遊ぶ", "/ja/"], ["まち針ゲームの遊び方", "/ja/guides/how-to-play/"], ["まち針ゲームのコツ・攻略", "/ja/guides/tips/"]]) +
       footerCol("サイト", [["このサイトについて", "/ja/about/"], ["プライバシーポリシー", "/ja/privacy/"], ["利用規約", "/ja/terms/"]]) +
       footerCol("言語", [["English", "/"], ["日本語", "/ja/"]]) +
-      '</div><p class="footer-note">このサイトは独立したファンメイドのブラウザゲームです。特定の原作者、出版社、公式サイトとは提携・承認関係にありません。CoreBall は当サイトが独自に実装したゲームです。</p><p class="footer-sponsored">' + smartLink() + '</p></div></footer>';
+      '</div><p class="footer-note">このサイトは独立したファンメイドのブラウザゲームです。特定の原作者、出版社、公式サイトとは提携・承認関係にありません。CoreBall は当サイトが独自に実装したゲームです。</p></div></footer>';
   }
   return '<footer class="site-footer"><div class="footer-inner"><div class="footer-grid">' +
     footerCol("Game", [["Play Coreball", "/"], ["How to Play", "/guides/how-to-play/"], ["Tips & Tricks", "/guides/tips/"]]) +
     footerCol("Site", [["About", "/about/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]]) +
     footerCol("Languages", [["English", "/"], ["日本語", "/ja/"]]) +
-    '</div><p class="footer-note">This is an independent fan-made browser game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website. CoreBall is an original implementation.</p><p class="footer-sponsored">' + smartLink() + '</p></div></footer>';
+    '</div><p class="footer-note">This is an independent fan-made browser game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website. CoreBall is an original implementation.</p></div></footer>';
 }
 
 function footerCol(title, links) {

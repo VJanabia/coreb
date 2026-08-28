@@ -76,18 +76,9 @@ Set these as Cloudflare Pages environment variables before the build. The AdSens
 emitted; ad units stay as CLS-safe labeled placeholders until slot ids are configured. GA4 is a
 commented-out snippet until a measurement id is set.
 
-### Secondary ad network (ProfitablerateCPMNetwork)
-
-Enabled by default (toggle off with `AD_NETWORK_ENABLED=0`). It adds:
-
-- **NativeBanner** invoke script (async) in `<head>` + a labeled container in the EN and JA home
-  content, below the game area.
-- **Popunder** and **SocialBar** scripts (async, non-blocking) in `<head>`.
-- **Smartlink** as a discreet "Sponsored" link in the footer.
-
-All tags are `async`/`data-cfasync="false"` so they never block first paint / LCP, and none are
-placed near game controls. Note: running pop-unders/SocialBars alongside Google AdSense can
-violate AdSense program policies; keep this in mind if you want to keep both networks enabled.
+Monetization uses **Google AdSense only**. The global `<head>` loader is always emitted and two
+CLS-safe ad slots sit below the game area (away from controls), filling once real ad-unit ids are
+set via `ADSENSE_SLOT_TOP` / `ADSENSE_SLOT_BOTTOM`.
 
 GA4 events emitted by the game: `game_start`, `level_start`, `level_complete`, `level_failed`,
 `level_retry`, `level_select`, `game_complete`, `sound_toggle`.
