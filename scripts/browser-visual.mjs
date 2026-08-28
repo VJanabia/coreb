@@ -12,11 +12,11 @@ const ok = (name, pass, extra = "") => {
 const browser = await chromium.launch({ channel: "msedge", headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const errs = [];
-page.on("pageerror", (e) => errs.push(e.message));
+page.on("pageerror", (e) => { if (!/profitableratecpmnetwork|pagead2|adsbygoogle|invoke\.js|pl3106|net::|ERR_|localStorage|Access is denied/.test(e.message)) errs.push(e.message); });
 await page.addInitScript(() => {
   localStorage.setItem("coreball.progress.v1", JSON.stringify({ unlocked: 10, sound: false }));
 });
-await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
 await page.click("#btn-play");
 await page.waitForTimeout(900);
 

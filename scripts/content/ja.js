@@ -73,6 +73,7 @@ export const pages = [
         site.adBottom() +
         "<h2>レベルについて</h2>" +
         "<p>最初のリリースには500レベルあります。すべてのレベルに最初から針が刺さっており（レベル1は2本）、プレイヤーは残ったすき間に針を差し込んでいきます。中盤以降は速度の上昇、回転方向の変化、より多くの初期針、密度の高い配置が段階的に登場します。進捗はブラウザに保存されるため、続きのレベルから再開できます。</p>" +
+        site.nativeBannerSlot() +
         "<h2>よくある質問</h2>" +
         "<div class='faq'>" +
         homeFaq.map((f) => "<details><summary>" + f.q + "</summary><p class='a'>" + f.a + "</p></details>").join("") +
