@@ -9,7 +9,9 @@ export const LEVEL_COUNT = 500;
 export const BUILD_DATE = new Date().toISOString().slice(0, 10);
 
 // Build-time integrations. Unset => feature stays disabled (no third-party request).
-const GA_ID = (process.env.GA_MEASUREMENT_ID || "").trim();
+// Google Analytics 4 measurement id (active by default; override with
+// GA_MEASUREMENT_ID, or set empty to disable the tag entirely).
+const GA_ID = (process.env.GA_MEASUREMENT_ID || "G-415SLBVWBX").trim();
 // Publisher id for Google AdSense. The global <head> loader is always emitted
 // so AdSense can serve ads site-wide; ad units remain placeholders until
 // ADSENSE_SLOT_TOP / ADSENSE_SLOT_BOTTOM (or per-slot ids) are provided.
