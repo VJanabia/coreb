@@ -8,7 +8,7 @@ mkdirSync(resolve(dirname(fileURLToPath(import.meta.url)), "screenshots"), { rec
 
 const BASE = process.env.BASE_URL || "http://localhost:4173";
 // ignore ad-network / resource noise so the test focuses on the game itself
-const isAdNoise = (t) => /pagead2|adsbygoogle|Failed to load resource|net::|ERR_|localStorage|Access is denied/.test(t || "");
+const isAdNoise = (t) => /profitableratecpm|pl31067534|invoke\.js|pagead2|adsbygoogle|Failed to load resource|net::|ERR_|localStorage|Access is denied/.test(t || "");
 const results = [];
 const ok = (name, pass, extra = "") => {
   results.push({ name, pass, extra });

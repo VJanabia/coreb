@@ -19,6 +19,22 @@ const AD_PUB_ID = (process.env.ADSENSE_PUB_ID || "9073496682747119").trim();
 const AD_SLOT_TOP = (process.env.ADSENSE_SLOT_TOP || "0000000000").trim();
 const AD_SLOT_BOTTOM = (process.env.ADSENSE_SLOT_BOTTOM || "0000000000").trim();
 
+// NativeBanner (ProfitablerateCPMNetwork) shown below the game on the home pages.
+// Toggle off with AD_NATIVE_ENABLED=0. This is a content display banner only —
+// no pop-unders / overlay bars, so it stays compatible with Google AdSense.
+const AD_NATIVE_ENABLED = (process.env.AD_NATIVE_ENABLED || "1") === "1";
+const AD_NATIVE_DOMAIN = "pl31067534.profitableratecpmnetwork.com";
+const AD_NATIVE_ID = "bbba1a441b21e913346710c8cfd9734d";
+
+export function nativeBannerSlot() {
+  if (!AD_NATIVE_ENABLED) return "";
+  // The async invoke script + its container are placed together in the body so
+  // the ad only ever loads on pages that actually render the slot.
+  return '<div class="native-ad"><span class="ad-label">Advertisement</span>' +
+    '<script async="async" data-cfasync="false" src="https://' + AD_NATIVE_DOMAIN + '/' + AD_NATIVE_ID + '/invoke.js"></script>' +
+    '<div id="container-' + AD_NATIVE_ID + '"></div></div>';
+}
+
 export function escapeHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")

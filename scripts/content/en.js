@@ -62,6 +62,7 @@ export const pages = [
       return "<main id='main'>" +
         "<section class='hero'><h1>Play Coreball Online</h1><p class='tagline'>A free Coreball-inspired browser game. Aim for the gaps, shoot pins into the rotating core, and clear all 500 levels — no download, no login.</p></section>" +
         site.gameSection("en", "index.html") +
+        site.nativeBannerSlot() +
         "<section class='content'>" +
         "<p class='lead'>Coreball is a free online timing game. A small core keeps rotating while pins are already planted in it, and you fire the next pin into the widest open gap. One mistimed shot ends the run — but you simply tap anywhere to restart the same level instantly. It works right in your browser on desktop and mobile, with no account, download, or ad wall before your first shot.</p>" +
         site.adTop() +

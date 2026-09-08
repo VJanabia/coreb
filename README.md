@@ -80,9 +80,11 @@ Set these as Cloudflare Pages environment variables before the build. The AdSens
 emitted; ad units stay as CLS-safe labeled placeholders until slot ids are configured. GA4 is a
 commented-out snippet until a measurement id is set.
 
-Monetization uses **Google AdSense only**. The global `<head>` loader is always emitted and two
-CLS-safe ad slots sit below the game area (away from controls), filling once real ad-unit ids are
-set via `ADSENSE_SLOT_TOP` / `ADSENSE_SLOT_BOTTOM`.
+Monetization uses **Google AdSense** plus a **NativeBanner** (ProfitablerateCPMNetwork) placed in a
+labeled slot directly below the game on the EN/JA home pages (toggle off with
+`AD_NATIVE_ENABLED=0`). The AdSense global `<head>` loader is always emitted and two CLS-safe
+ad slots sit in the content (away from controls), filling once real ad-unit ids are set via
+`ADSENSE_SLOT_TOP` / `ADSENSE_SLOT_BOTTOM`.
 
 GA4 events emitted by the game: `game_start`, `level_start`, `level_complete`, `level_failed`,
 `level_retry`, `level_select`, `game_complete`, `sound_toggle`.

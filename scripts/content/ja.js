@@ -62,6 +62,7 @@ export const pages = [
       return "<main id='main'>" +
         "<section class='hero'><h1>まち針ゲーム</h1><p class='tagline'>無料で今すぐ遊べる、回転するコアに針を刺すタイミングゲーム。登録不要・ダウンロード不要で、スマホでもパソコンでも遊べます。</p></section>" +
         site.gameSection("ja", "ja/index.html") +
+        site.nativeBannerSlot() +
         "<section class='content'>" +
         "<p class='lead'>まち針ゲームは無料のオンラインブラウザゲームです。小さなコアには最初から針が刺さっており、画面下の「次の1本」をいちばん広いすき間へ向けて発射します。タイミングを誤ると失敗になりますが、画面をタップするだけで同じレベルにすぐ再挑戦できます。登録もダウンロードも不要で、スマホ・パソコンですぐ遊べます。</p>" +
         site.adTop() +
