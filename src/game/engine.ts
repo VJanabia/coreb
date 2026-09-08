@@ -47,14 +47,14 @@ interface Projectile {
   phaseT: number;
 }
 
-// Pins elongating off the screen after a level is cleared: the base of each
-// pin stays at the core surface while the pin grows outward and slides away
-// (the original "extend and fly off" Coreball effect).
+// Level-clear needles: the tail stays pinned to the core while each pin's head
+// and body lengthen outward until they pass the screen edge, then stay drawn
+// (still radiating from the core) until the player starts the next level.
 interface FlyingPin {
   ang: number;      // world angle (frozen)
   color: string;
   delay: number;    // small per-pin stagger (s)
-  outR: number;     // current outer tip radius (grows over time)
+  outR: number;     // outer tip radius (grows outward over time)
   v: number;        // growth speed (px/s)
 }
 
@@ -235,16 +235,17 @@ export class CoreballEngine {
     this.flash = Math.max(0, this.flash - dt * 1.6);
     this.coreFlash = Math.max(0, this.coreFlash - dt * 2);
 
-    // fly-off animation: pins elongate outward from the core and leave the screen
+    // fly-off: each pin lengthens outward (tail stays on the core). The pins are
+    // not cleared afterwards; they keep being drawn until the next level starts.
     if (this.state === "flyoff") {
       this.flyT += dt;
       const limit = Math.hypot(this.w, this.h) / 2 + 60;
-      let allGone = true;
+      let allBeyond = true;
       for (const f of this.flying) {
         if (this.flyT > f.delay) f.outR += f.v * dt;
-        if (f.outR <= limit) allGone = false;
+        if (f.outR < limit) allBeyond = false;
       }
-      if (allGone || this.flyT > 1.7) this.setState("success");
+      if (allBeyond || this.flyT > 1.6) this.setState("success");
     }
 
     if (this.projectile.active) {
@@ -355,15 +356,15 @@ export class CoreballEngine {
     this.flash = 0;
     this.shake = 0;
     this.coreFlash = 1;
-    // Every pin keeps its own color and elongates outward from the core until
-    // it slides off the screen (original Coreball end-of-level effect).
-    const growV = Math.max(this.w, this.h) / 0.5;
+    // Whole pin turns its own colour; the tail stays inserted in the core and
+    // the head+body stretch outward until they pass off-screen (then persist).
+    const flyV = Math.max(this.w, this.h) / 0.5;
     this.flying = this.pins.map((pin, i) => ({
       ang: pin.angle + this.angle,
       color: pin.color,
-      delay: (i % 6) * 0.025,
+      delay: (i % 6) * 0.02,
       outR: this.rh,
-      v: growV * (0.9 + Math.random() * 0.2),
+      v: flyV * (0.9 + Math.random() * 0.2),
     }));
     this.pins = [];
     this.flyT = 0;
@@ -459,8 +460,9 @@ export class CoreballEngine {
     // attached pins (pre-inserted + player shots, one unified system)
     for (const pin of this.pins) this.drawPin(ctx, pin);
 
-    // ready pin (waiting below the core), flying projectile, or fly-off pins
-    if (this.state === "flyoff") {
+    // elongated level-clear pins stay visible during both the fly-off and the
+    // "tap to next" wait, and are cleared only when the next level starts.
+    if (this.state === "flyoff" || this.state === "success") {
       this.drawFlying(ctx);
     } else if (!this.projectile.active && this.shotsLeft > 0 && (this.state === "playing" || this.state === "ready")) {
       this.drawReadyPin(ctx);
@@ -639,34 +641,33 @@ export class CoreballEngine {
   // End-of-level animation: each pin keeps its own color and shoots radially
   // off the screen (original Coreball behaviour).
   private drawFlying(ctx: CanvasRenderingContext2D): void {
-    const limit = Math.hypot(this.w, this.h) / 2 + 40;
     for (const f of this.flying) {
-      // base stays at the core surface while the pin grows outward
-      const bx = Math.cos(f.ang) * this.R;
-      const by = Math.sin(f.ang) * this.R;
-      const ex = Math.cos(f.ang) * f.outR;
-      const ey = Math.sin(f.ang) * f.outR;
-      if (f.outR > limit) continue;
-      // elongated shaft, tinted with the pin's own color
+      // tail stays inserted at the core surface
+      const tx = Math.cos(f.ang) * this.R;
+      const ty = Math.sin(f.ang) * this.R;
+      const hx = Math.cos(f.ang) * f.outR;
+      const hy = Math.sin(f.ang) * f.outR;
+      // shaft from the core out to the head (colored like the head). Whatever
+      // lies beyond the canvas is clipped naturally, so the body is never lost.
       ctx.beginPath();
-      ctx.moveTo(bx, by);
-      ctx.lineTo(ex - Math.cos(f.ang) * this.headR * 1.05, ey - Math.sin(f.ang) * this.headR * 1.05);
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(hx - Math.cos(f.ang) * this.headR * 1.05, hy - Math.sin(f.ang) * this.headR * 1.05);
       ctx.lineWidth = Math.max(2.2, this.headR * 0.28);
       ctx.lineCap = "round";
       ctx.strokeStyle = f.color;
-      ctx.globalAlpha = 0.8;
+      ctx.globalAlpha = 0.85;
       ctx.stroke();
       ctx.globalAlpha = 1;
-      // colored head riding the outer tip
+      // colored head at the outer end
       ctx.beginPath();
-      ctx.arc(ex, ey, this.headR * 1.05, 0, Math.PI * 2);
+      ctx.arc(hx, hy, this.headR * 1.05, 0, Math.PI * 2);
       ctx.fillStyle = f.color;
       ctx.fill();
       ctx.lineWidth = 1;
       ctx.strokeStyle = "rgba(20,28,48,0.25)";
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(ex - Math.cos(f.ang) * this.headR * 0.3, ey - Math.sin(f.ang) * this.headR * 0.3, this.headR * 0.26, 0, Math.PI * 2);
+      ctx.arc(hx - Math.cos(f.ang) * this.headR * 0.3, hy - Math.sin(f.ang) * this.headR * 0.3, this.headR * 0.26, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(255,255,255,0.5)";
       ctx.fill();
     }
