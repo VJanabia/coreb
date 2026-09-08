@@ -222,6 +222,36 @@ for (let i = 0; i < 3; i++) {
   if (now === seq[seq.length - 2]) okSeq = false;
 }
 ok("mobile consecutive shots keep firing", okSeq, seq.join(" -> "));
+
+// Level clear: the player fires the last pins (a miss simply retries with a
+// tap), the pins fly off in color, no "Level Complete" panel appears, then a
+// "tap to next" toast shows and a tap advances to Level 2.
+const stateOfM = () => mob.evaluate(() => document.body.getAttribute("data-game-state") || "");
+let cleared = false;
+let sawFlyoff = false;
+for (let i = 0; i < 140 && !cleared; i++) {
+  const st = await stateOfM();
+  if (st === "flyoff") sawFlyoff = true;
+  if (st === "playing") {
+    await mob.tap("#coreball-canvas");
+  } else if (st === "failed") {
+    await mob.waitForTimeout(450); // tap lockout after a miss
+    await mob.tap("#coreball-canvas");
+  }
+  await mob.waitForTimeout(160);
+  cleared = (await stateOfM()) === "success";
+}
+ok("level clear finishes (pins flew off)", cleared, await stateOfM());
+ok("flyoff state was seen (pins leave the screen)", sawFlyoff, String(sawFlyoff));
+ok("no Level Complete panel", (await mob.locator("#overlay-success").count()) === 0);
+ok("no overlay-success button", (await mob.locator("#btn-next").count()) === 0);
+const winToast = (await mob.textContent("#retry-toast")) || "";
+ok("tap-to-next toast shown", winToast.includes("タップで次のレベル"), winToast);
+await mob.tap("#coreball-canvas");
+await mob.waitForTimeout(600);
+ok("tap advances to Level 2", ((await mob.textContent("#hud-level")) || "").includes("レベル 2 / 500"), await mob.textContent("#hud-level"));
+ok("Level 2 starts playing", (await stateOfM()) === "playing", await stateOfM());
+ok("Level 2 pins reset", /残り: 7本/.test((await mob.textContent("#hud-balls")) || ""), await mob.textContent("#hud-balls"));
 await mob.screenshot({ path: "scripts/screenshots/ja-mobile.png" });
 ok("no console errors (mobile)", errsC.length === 0, errsC.slice(0, 3).join(" | "));
 await mob.close();

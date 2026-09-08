@@ -2,7 +2,14 @@
 // attachment) with rendering. No framework, no assets - everything is drawn.
 import { getLevel, totalPins, type Level } from "./levels";
 
-export type GameState = "loading" | "ready" | "playing" | "success" | "failed" | "paused";
+export type GameState =
+  | "loading"
+  | "ready"
+  | "playing"
+  | "flyoff"
+  | "success"
+  | "failed"
+  | "paused";
 
 export interface HudInfo {
   level: number;
@@ -38,6 +45,14 @@ interface Projectile {
   x: number; y: number; color: string;
   phase: "windup" | "fly";
   phaseT: number;
+}
+
+// Pins flying off the screen after a level is cleared (like the original game).
+interface FlyingPin {
+  ang: number;      // world angle at launch (frozen)
+  r: number;        // current distance from the core center
+  v: number;        // radial speed (px/s)
+  color: string;
 }
 
 // Visual proportions (kept in sync with scripts/generate-levels.mjs).
@@ -77,6 +92,8 @@ export class CoreballEngine {
   private pins: Pin[] = [];
   private projectile: Projectile = { active: false, x: 0, y: 0, color: "#0e8af0", phase: "fly", phaseT: 0 };
   private particles: Particle[] = [];
+  private flying: FlyingPin[] = [];
+  private flyT = 0;
   private shake = 0;
   private flash = 0;
   private coreFlash = 0;
@@ -215,6 +232,18 @@ export class CoreballEngine {
     this.flash = Math.max(0, this.flash - dt * 1.6);
     this.coreFlash = Math.max(0, this.coreFlash - dt * 2);
 
+    // fly-off animation: colored pins shoot radially off the screen
+    if (this.state === "flyoff") {
+      this.flyT += dt;
+      const limit = Math.hypot(this.w, this.h) / 2 + 80;
+      let allGone = true;
+      for (const f of this.flying) {
+        f.r += f.v * dt;
+        if (f.r <= limit) allGone = false;
+      }
+      if (allGone || this.flyT > 1.2) this.setState("success");
+    }
+
     if (this.projectile.active) {
       if (this.projectile.phase === "windup") {
         this.projectile.phaseT += dt;
@@ -323,6 +352,17 @@ export class CoreballEngine {
     this.flash = 0;
     this.shake = 0;
     this.coreFlash = 1;
+    // Every pin keeps its own color and flies radially off the screen,
+    // like the original Coreball end-of-level animation.
+    const exitV = Math.max(this.w, this.h) / 0.55;
+    this.flying = this.pins.map((pin) => ({
+      ang: pin.angle + this.angle,
+      r: this.rh,
+      v: exitV * (0.85 + Math.random() * 0.3),
+      color: pin.color,
+    }));
+    this.pins = [];
+    this.flyT = 0;
     const colors = [...PIN_COLORS, "#ffffff"];
     for (let i = 0; i < 44; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -339,7 +379,7 @@ export class CoreballEngine {
       });
     }
     this.events?.onWin();
-    this.setState("success");
+    this.setState("flyoff");
   }
 
   private burst(x: number, y: number, color: string, count: number, speed: number): void {
@@ -415,8 +455,10 @@ export class CoreballEngine {
     // attached pins (pre-inserted + player shots, one unified system)
     for (const pin of this.pins) this.drawPin(ctx, pin);
 
-    // ready pin (waiting below the core) or flying projectile
-    if (!this.projectile.active && this.shotsLeft > 0 && (this.state === "playing" || this.state === "ready")) {
+    // ready pin (waiting below the core), flying projectile, or fly-off pins
+    if (this.state === "flyoff") {
+      this.drawFlying(ctx);
+    } else if (!this.projectile.active && this.shotsLeft > 0 && (this.state === "playing" || this.state === "ready")) {
       this.drawReadyPin(ctx);
     } else if (this.projectile.active) {
       this.drawProjectile(ctx);
@@ -588,6 +630,40 @@ export class CoreballEngine {
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(20,28,48,0.25)";
     ctx.stroke();
+  }
+
+  // End-of-level animation: each pin keeps its own color and shoots radially
+  // off the screen (original Coreball behaviour).
+  private drawFlying(ctx: CanvasRenderingContext2D): void {
+    for (const f of this.flying) {
+      const x = Math.cos(f.ang) * f.r;
+      const y = Math.sin(f.ang) * f.r;
+      if (f.r > Math.hypot(this.w, this.h) / 2 + 40) continue;
+      // colored shaft trailing toward the core
+      const tx = Math.cos(f.ang) * (f.r - this.shaftLen * 0.8);
+      const ty = Math.sin(f.ang) * (f.r - this.shaftLen * 0.8);
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(x, y);
+      ctx.lineWidth = Math.max(2.2, this.headR * 0.28);
+      ctx.lineCap = "round";
+      ctx.strokeStyle = f.color;
+      ctx.globalAlpha = 0.85;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // colored head
+      ctx.beginPath();
+      ctx.arc(x, y, this.headR * 1.05, 0, Math.PI * 2);
+      ctx.fillStyle = f.color;
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(20,28,48,0.25)";
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x - this.headR * 0.28, y - this.headR * 0.3, this.headR * 0.26, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fill();
+    }
   }
 
   private drawDirectionMarker(ctx: CanvasRenderingContext2D): void {

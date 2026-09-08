@@ -213,6 +213,7 @@ export function gameI18n(lang) {
     statusFailed: "レベル {0} でゲームオーバー。タップでリトライ。",
     tapToRetry: "タップでリトライ",
     statusSuccess: "レベル {0} クリア。",
+    tapToNext: "タップで次のレベル",
     statusPaused: "一時停止中。",
   };
   return {
@@ -246,6 +247,7 @@ export function gameI18n(lang) {
     statusFailed: "Game over on level {0}. Tap to retry.",
     tapToRetry: "Tap to Retry",
     statusSuccess: "Level {0} complete.",
+    tapToNext: "Tap for Next Level",
     statusPaused: "Game paused.",
   };
 }
@@ -258,7 +260,6 @@ export function gameSection(lang, filePath) {
   const readyTitle = lang === "ja" ? "まち針ゲーム" : "Play Coreball";
   const readySub = lang === "ja" ? "500レベル。タップ、クリック、またはスペースキーで発射。" : "500 levels. Tap, click or press Space to shoot.";
   const playLabel = lang === "ja" ? "今すぐ遊ぶ" : "Play";
-  const nextLabel = lang === "ja" ? "次のレベル" : "Next Level";
   const levelsLabel = lang === "ja" ? "レベル一覧" : "Levels";
   const pausedLabel = lang === "ja" ? "一時停止" : "Paused";
   const resumeLabel = lang === "ja" ? "再開" : "Resume";
@@ -280,7 +281,6 @@ export function gameSection(lang, filePath) {
     "</canvas>",
     '<div class="game-overlay overlay-hidden" id="game-overlay">',
     '<div class="overlay-panel" id="overlay-ready" hidden><h2 id="ready-title">' + readyTitle + '</h2><p id="ready-sub">' + readySub + '</p><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-play">' + playLabel + "</button></div></div>",
-    '<div class="overlay-panel" id="overlay-success" hidden><h2 id="success-title">Level Complete</h2><p id="success-sub"></p><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-next">' + nextLabel + '</button><button type="button" class="btn" id="btn-levels-success">' + levelsLabel + "</button></div></div>",
     '<div class="overlay-panel" id="overlay-paused" hidden><h2 id="paused-title">' + pausedLabel + '</h2><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-resume">' + resumeLabel + "</button></div></div>",
     "</div>",
     '<div class="retry-toast" id="retry-toast" hidden aria-hidden="true"></div>',

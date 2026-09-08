@@ -38,6 +38,7 @@ const DEFAULT_I18N: Record<string, string> = {
   statusPlaying: "Level {0}. {1} pins left.",
   statusFailed: "Game over on level {0}. Tap to retry.",
   tapToRetry: "Tap to Retry",
+  tapToNext: "Tap for Next Level",
   statusSuccess: "Level {0} complete.",
   statusPaused: "Game paused.",
 };
@@ -61,15 +62,10 @@ function $<T extends HTMLElement = HTMLElement>(id: string): T {
 const canvas = $<HTMLCanvasElement>("coreball-canvas");
 const overlay = $<HTMLDivElement>("game-overlay");
 const readyPanel = $<HTMLDivElement>("overlay-ready");
-const successPanel = $<HTMLDivElement>("overlay-success");
 const pausedPanel = $<HTMLDivElement>("overlay-paused");
 const readyTitle = $<HTMLHeadingElement>("ready-title");
 const readySub = $<HTMLParagraphElement>("ready-sub");
 const btnPlay = $<HTMLButtonElement>("btn-play");
-const successTitle = $<HTMLHeadingElement>("success-title");
-const successSub = $<HTMLParagraphElement>("success-sub");
-const btnNext = $<HTMLButtonElement>("btn-next");
-const btnLevelsSuccess = $<HTMLButtonElement>("btn-levels-success");
 const pausedTitle = $<HTMLHeadingElement>("paused-title");
 const btnResume = $<HTMLButtonElement>("btn-resume");
 const hudLevel = $<HTMLSpanElement>("hud-level");
@@ -112,6 +108,7 @@ engine.attach(canvas, {
   onWin: () => audio.win(),
 });
 
+
 function handleStateChange(state: string, level: number): void {
   document.body.setAttribute("data-game-state", state);
   if (state === "ready") {
@@ -126,31 +123,28 @@ function handleStateChange(state: string, level: number): void {
     focusPrimary(btnPlay);
   } else if (state === "playing") {
     hideOverlay();
-  } else if (state === "success") {
-    const allClear = level >= LEVEL_COUNT;
-    showPanel(successPanel);
-    successTitle.textContent = allClear ? t("allClear") : fmt(t("levelComplete"), [level]);
-    successSub.textContent = allClear ? t("allClearSub") : fmt(t("nextLevelSub"), [level + 1]);
-    btnNext.hidden = allClear;
+  } else if (state === "flyoff") {
+    // level cleared: pins just flew off the screen. Save progress + analytics
+    // now; a "tap to next" toast appears once the fly-off finishes ("success").
+    hideOverlay();
     hudStatus.textContent = fmt(t("statusSuccess"), [level]);
-    focusPrimary(allClear ? btnLevelsSuccess : btnNext);
-
     progress.unlocked = Math.min(LEVEL_COUNT, Math.max(progress.unlocked, level + 1));
     saveProgress(progress);
     track("level_complete", { level });
-    if (allClear) track("game_complete", { level });
+    if (level >= LEVEL_COUNT) track("game_complete", { level });
+  } else if (state === "success") {
+    // fly-off finished: no Level Complete screen, just "tap to next"
+    hideOverlay();
+    const allClear = level >= LEVEL_COUNT;
+    showToast(allClear ? t("allClear") : t("tapToNext"), true, true);
+    hudStatus.textContent = allClear ? t("allClear") : fmt(t("statusSuccess"), [level]);
   } else if (state === "failed") {
     // no Game Over screen: after a short fail feedback the player just taps
     // anywhere (or presses Space/Enter) to restart the same level instantly
     hideOverlay();
     hudStatus.textContent = fmt(t("statusFailed"), [level]);
     failAt = performance.now();
-    retryToast.textContent = t("tapToRetry");
-    retryToast.hidden = false;
-    window.clearTimeout(toastTimer);
-    toastTimer = window.setTimeout(() => {
-      retryToast.hidden = true;
-    }, 1500);
+    showToast(t("tapToRetry"), false, false);
     track("level_failed", { level });
   } else if (state === "paused") {
     showPanel(pausedPanel);
@@ -199,7 +193,7 @@ function play(): void {
 }
 
 function showPanel(panel: HTMLElement): void {
-  [readyPanel, successPanel, pausedPanel].forEach((p) => {
+  [readyPanel, pausedPanel].forEach((p) => {
     p.hidden = p !== panel;
   });
   overlay.classList.remove("overlay-hidden");
@@ -220,6 +214,30 @@ function focusPrimary(button: HTMLButtonElement): void {
   requestAnimationFrame(() => button.focus({ preventScroll: true }));
 }
 
+// Central toast: optional auto-hide, optional success (teal) styling.
+function showToast(text: string, hold: boolean, success: boolean): void {
+  retryToast.textContent = text;
+  retryToast.className = "retry-toast" + (hold ? " toast-hold" : "") + (success ? " toast-success" : "");
+  retryToast.hidden = false;
+  window.clearTimeout(toastTimer);
+  if (!hold) {
+    toastTimer = window.setTimeout(() => {
+      retryToast.hidden = true;
+    }, 1500);
+  }
+}
+
+// Tap-to-next after a cleared level.
+function nextFromSuccess(): void {
+  retryToast.hidden = true;
+  window.clearTimeout(toastTimer);
+  if (currentLevel >= LEVEL_COUNT) {
+    openLevels();
+    return;
+  }
+  startLevel(currentLevel + 1);
+}
+
 function updateSoundButton(): void {
   soundLabel.textContent = audio.enabled ? t("soundOn") : t("soundOff");
   btnSound.setAttribute("aria-pressed", audio.enabled ? "true" : "false");
@@ -234,11 +252,7 @@ function toggleSound(): void {
 }
 
 btnPlay.addEventListener("click", play);
-btnNext.addEventListener("click", () => {
-  if (currentLevel < LEVEL_COUNT) startLevel(currentLevel + 1);
-});
 btnResume.addEventListener("click", () => engine.resume());
-btnLevelsSuccess.addEventListener("click", openLevels);
 btnLevels.addEventListener("click", openLevels);
 btnSound.addEventListener("click", toggleSound);
 btnCloseModal.addEventListener("click", closeLevels);
@@ -257,6 +271,8 @@ canvas.addEventListener("pointerdown", (e) => {
   else if (engine.state === "playing") engine.fire();
   else if (engine.state === "failed" && performance.now() - failAt > RETRY_DELAY_MS) {
     retryLevel();
+  } else if (engine.state === "success") {
+    nextFromSuccess();
   }
 });
 
@@ -278,6 +294,8 @@ window.addEventListener("keydown", (e) => {
     else if (engine.state === "playing") engine.fire();
     else if (engine.state === "failed" && performance.now() - failAt > RETRY_DELAY_MS) {
       retryLevel();
+    } else if (engine.state === "success") {
+      nextFromSuccess();
     }
   }
   if (e.code === "KeyP" && !modal.open) {
