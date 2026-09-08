@@ -138,20 +138,20 @@ export function siteHeader(lang, path) {
 export function siteFooter(lang) {
   if (lang === "ja") {
     return '<footer class="site-footer"><div class="footer-inner"><div class="footer-grid">' +
-      footerCol("ゲーム", [["まち針ゲームを遊ぶ", "/ja/"], ["まち針ゲームの遊び方", "/ja/guides/how-to-play/"], ["まち針ゲームのコツ・攻略", "/ja/guides/tips/"]]) +
-      footerCol("サイト", [["このサイトについて", "/ja/about/"], ["プライバシーポリシー", "/ja/privacy/"], ["利用規約", "/ja/terms/"]]) +
+      footerCol("ゲーム", [["まち針ゲームを遊ぶ", "/ja/"], ["まち針ゲームの遊び方", "/ja/guides/how-to-play/"], ["まち針ゲームのコツ・攻略", "/ja/guides/tips/"], ["レベルについて", "/ja/levels/"]]) +
+      footerCol("サイト", [["このサイトについて", "/ja/about/"], ["よくある質問", "/ja/faq/"], ["プライバシーポリシー", "/ja/privacy/"], ["利用規約", "/ja/terms/"]]) +
       footerCol("言語", [["English", "/"], ["日本語", "/ja/"]]) +
       '</div><p class="footer-note">このサイトは独立したファンメイドのブラウザゲームです。特定の原作者、出版社、公式サイトとは提携・承認関係にありません。CoreBall は当サイトが独自に実装したゲームです。</p></div></footer>';
   }
   return '<footer class="site-footer"><div class="footer-inner"><div class="footer-grid">' +
-    footerCol("Game", [["Play Coreball", "/"], ["How to Play", "/guides/how-to-play/"], ["Tips & Tricks", "/guides/tips/"]]) +
-    footerCol("Site", [["About", "/about/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]]) +
+    footerCol("Game", [["Play Coreball", "/"], ["How to Play", "/guides/how-to-play/"], ["Tips & Tricks", "/guides/tips/"], ["Levels", "/levels/"]]) +
+    footerCol("Site", [["About", "/about/"], ["FAQ", "/faq/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]]) +
     footerCol("Languages", [["English", "/"], ["日本語", "/ja/"]]) +
     '</div><p class="footer-note">This is an independent fan-made browser game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website. CoreBall is an original implementation.</p></div></footer>';
 }
 
 function footerCol(title, links) {
-  let out = '<div class="footer-col"><h2>' + escapeHtml(title) + "</h2><ul>";
+  let out = '<div class="footer-col"><h3>' + escapeHtml(title) + "</h3><ul>";
   for (const [label, href] of links) out += '<li><a href="' + href + '">' + escapeHtml(label) + "</a></li>";
   return out + "</ul></div>";
 }
@@ -194,7 +194,8 @@ export function gameI18n(lang) {
     currentLevel: "レベル {0}（現在）",
     statusReady: "準備完了。スタートボタンを押してください。",
     statusPlaying: "レベル {0}。残り {1} 本。",
-    statusFailed: "レベル {0} でゲームオーバー。",
+    statusFailed: "レベル {0} でゲームオーバー。タップでリトライ。",
+    tapToRetry: "タップでリトライ",
     statusSuccess: "レベル {0} クリア。",
     statusPaused: "一時停止中。",
   };
@@ -226,7 +227,8 @@ export function gameI18n(lang) {
     currentLevel: "Level {0} (current)",
     statusReady: "Coreball ready. Press Play to start.",
     statusPlaying: "Level {0}. {1} balls left.",
-    statusFailed: "Game over on level {0}.",
+    statusFailed: "Game over on level {0}. Tap to retry.",
+    tapToRetry: "Tap to Retry",
     statusSuccess: "Level {0} complete.",
     statusPaused: "Game paused.",
   };
@@ -242,8 +244,6 @@ export function gameSection(lang, filePath) {
   const playLabel = lang === "ja" ? "今すぐ遊ぶ" : "Play";
   const nextLabel = lang === "ja" ? "次のレベル" : "Next Level";
   const levelsLabel = lang === "ja" ? "レベル一覧" : "Levels";
-  const retryLabel = lang === "ja" ? "もう一度" : "Try Again";
-  const gameOverLabel = lang === "ja" ? "ゲームオーバー" : "Game Over";
   const pausedLabel = lang === "ja" ? "一時停止" : "Paused";
   const resumeLabel = lang === "ja" ? "再開" : "Resume";
   const hudLevel = lang === "ja" ? "レベル 1 / 500" : "Level 1 / 500";
@@ -265,9 +265,9 @@ export function gameSection(lang, filePath) {
     '<div class="game-overlay overlay-hidden" id="game-overlay">',
     '<div class="overlay-panel" id="overlay-ready" hidden><h2 id="ready-title">' + readyTitle + '</h2><p id="ready-sub">' + readySub + '</p><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-play">' + playLabel + "</button></div></div>",
     '<div class="overlay-panel" id="overlay-success" hidden><h2 id="success-title">Level Complete</h2><p id="success-sub"></p><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-next">' + nextLabel + '</button><button type="button" class="btn" id="btn-levels-success">' + levelsLabel + "</button></div></div>",
-    '<div class="overlay-panel" id="overlay-failed" hidden><h2 id="failed-title">' + gameOverLabel + '</h2><p id="failed-sub"></p><div class="overlay-actions"><button type="button" class="btn btn-primary btn-danger" id="btn-retry">' + retryLabel + '</button><button type="button" class="btn" id="btn-levels-failed">' + levelsLabel + "</button></div></div>",
     '<div class="overlay-panel" id="overlay-paused" hidden><h2 id="paused-title">' + pausedLabel + '</h2><div class="overlay-actions"><button type="button" class="btn btn-primary" id="btn-resume">' + resumeLabel + "</button></div></div>",
     "</div>",
+    '<div class="retry-toast" id="retry-toast" hidden aria-hidden="true"></div>',
     '<div class="level-banner" id="level-banner" hidden aria-hidden="true"></div>',
     '<noscript><div class="overlay-panel"><p>' + (lang === "ja" ? "ゲームを開始するには JavaScript を有効にしてください。" : "Please enable JavaScript to play the game.") + "</p></div></noscript>",
     "</div>",

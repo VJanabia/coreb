@@ -129,6 +129,20 @@ main { display: block; }
   100% { opacity: 0; }
 }
 
+.retry-toast {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  background: rgba(229, 72, 77, 0.94); color: #fff; font-weight: 800;
+  padding: 10px 22px; border-radius: 999px; font-size: 1rem;
+  pointer-events: none; z-index: 6; white-space: nowrap;
+  animation: toast-fade 1.5s ease forwards;
+  box-shadow: 0 6px 18px rgba(38, 49, 79, 0.25);
+}
+@keyframes toast-fade {
+  0% { opacity: 0; transform: translate(-50%, -44%); }
+  10% { opacity: 1; transform: translate(-50%, -50%); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .overlay-panel {
   text-align: center; background: var(--surface);
   border: 1px solid var(--line); border-radius: 14px;
@@ -186,7 +200,7 @@ main { display: block; }
 
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.card h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.card h3 { margin: 0 0 8px; font-size: 1.15rem; }
 .card p { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
 .card .btn { padding: 8px 14px; min-height: 36px; font-size: 0.9rem; }
 
@@ -215,7 +229,7 @@ main { display: block; }
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); margin-top: 40px; }
 .footer-inner { max-width: 1000px; margin: 0 auto; padding: 26px 16px 34px; }
 .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px; }
-.footer-col h2 { font-size: 0.95rem; color: var(--navy); margin: 0 0 8px; }
+.footer-col h3 { font-size: 0.95rem; color: var(--navy); margin: 0 0 8px; }
 .footer-col ul { list-style: none; margin: 0; padding: 0; }
 .footer-col li { margin: 5px 0; }
 .footer-col a { color: var(--muted); font-size: 0.92rem; }

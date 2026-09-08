@@ -12,7 +12,11 @@ separate English (`/`) and Japanese (`/ja/`) URL versions.
 /guides/                  English guides hub
 /guides/how-to-play/      English how-to guide
 /guides/tips/             English tips guide
+/levels/                  English level-system page
+/faq/                     English FAQ page
 /about/ /privacy/ /terms/ English legal/info pages
+/ja/levels/               Japanese level-system page
+/ja/faq/                  Japanese FAQ page
 /ja/guides/ ...           Japanese guides + legal pages
 /sitemap.xml              all SEO URLs
 /robots.txt               allow all + sitemap

@@ -19,6 +19,8 @@ const HOME = "/";
 const HOW = "/guides/how-to-play/";
 const TIPS = "/guides/tips/";
 const GUIDES = "/guides/";
+const LEVELS = "/levels/";
+const FAQ = "/faq/";
 
 const homeFaq = [
   {
@@ -61,27 +63,26 @@ export const pages = [
         "<section class='hero'><h1>Play Coreball Online</h1><p class='tagline'>A free Coreball-inspired browser game. Aim for the gaps, shoot pins into the rotating core, and clear all 500 levels — no download, no login.</p></section>" +
         site.gameSection("en", "index.html") +
         "<section class='content'>" +
-        "<p class='lead'>Coreball is a deceptively simple timing game. A central core keeps rotating while you fire pins into the open spaces around it. One mistimed shot ends the run, so every tap counts. It works instantly on desktop and mobile browsers — no account, no tutorial wall, no interstitial ads before your first game.</p>" +
+        "<p class='lead'>Coreball is a free online timing game. A small core keeps rotating while pins are already planted in it, and you fire the next pin into the widest open gap. One mistimed shot ends the run — but you simply tap anywhere to restart the same level instantly. It works right in your browser on desktop and mobile, with no account, download, or ad wall before your first shot.</p>" +
         site.adTop() +
         "<h2>How to Play Coreball</h2>" +
-        "<ol><li>Press <strong>Play</strong> or tap the game area.</li><li>Watch the core rotate and look for an open gap.</li><li>Click, tap, or press <strong>Space</strong> to fire a pin.</li><li>Land every required pin without touching an existing pin.</li><li>Clear the level to unlock the next one.</li></ol>" +
-        "<h2>Coreball Tips</h2>" +
-        "<ul><li>The colored pin waiting below the core is your next shot — its dashed line marks the flight path.</li><li>Aim for the widest visible gap, not the one that is about to disappear.</li><li>Find a steady rhythm instead of chasing the rotation with your eyes.</li><li>On faster levels, fire slightly before the gap lines up with the dashed shot path.</li><li>Watch for direction changes and accelerating levels in the higher ranges.</li><li>Use the level selector to replay any unlocked level as many times as you like.</li></ul>" +
-        "<h2>What is Coreball?</h2>" +
-        "<p>Coreball — also searched as core ball, coreball online, or coreball game — is an arcade-style precision game. A large core sits in the center of the screen, and your goal is to attach pins or balls around it. Every successful shot makes the next gap smaller and the timing tighter.</p>" +
-        "<p>This version is an independent, fan-made browser game inspired by the classic Coreball-style gameplay. It is not the official or original Coreball, and it is not affiliated with or endorsed by any publisher or website. The code, level data, and graphics here are original.</p>" +
-        site.adBottom() +
+        "<ol><li>Press <strong>Play</strong> or tap the game area.</li><li>Watch the core rotate and find an open gap between the pins already attached.</li><li>Click, tap, or press <strong>Space</strong> to fire the pin waiting below the core.</li><li>Land every required pin without touching an existing pin.</li><li>Clear the level to unlock the next one. Lose a run? Tap anywhere to try again at once.</li></ol>" +
         "<h2>Coreball Levels</h2>" +
-        "<p>There are 500 levels in this release. Every level starts with pins already inserted into the core — Level 1 begins with two — and your job is to squeeze the remaining pins into the open gaps. Later levels add higher speed, direction changes, more pre-inserted pins, and denser layouts. Your highest unlocked level is saved in your browser, so you can continue where you left off instead of restarting from Level 1.</p>" +
+        "<p>All 500 levels start with pins already inserted into the core — Level 1 begins with two. Difficulty grows through more pre-inserted pins, higher rotation speeds, direction changes, and denser layouts, while your highest unlocked level is saved automatically in the browser. Every level is fixed and reproducible, so practice pays off.</p>" +
+        "<p><a class='btn btn-primary' href='" + LEVELS + "'>Explore All 500 Coreball Levels</a></p>" +
+        "<h2>Coreball Tips</h2>" +
+        "<ul><li>The colored pin waiting below the core is your next shot — its dashed line marks the flight path.</li><li>Aim for the widest visible gap, not the one that is about to disappear.</li><li>Find a steady rhythm instead of chasing the rotation with your eyes.</li><li>On faster levels, fire slightly before the gap lines up with the dashed shot path.</li><li>Watch for direction changes and accelerating levels in the higher ranges.</li><li>A failed shot is not a penalty — tap to restart and try a better angle.</li><li>Use the level selector to replay any unlocked level as many times as you like.</li></ul>" +
         "<h2>Frequently Asked Questions</h2>" +
         "<div class='faq'>" +
         homeFaq.map((f) => "<details><summary>" + f.q + "</summary><p class='a'>" + f.a + "</p></details>").join("") +
         "</div>" +
         "<h2>More Coreball Guides</h2>" +
         "<div class='card-grid'>" +
-        "<div class='card'><h2>How to Play Coreball</h2><p>Learn the controls, the rules, and how collision works — step by step.</p><a class='btn' href='" + HOW + "'>Read the guide</a></div>" +
-        "<div class='card'><h2>Coreball Tips &amp; Tricks</h2><p>Practical techniques for reading gaps, keeping rhythm, and beating harder levels.</p><a class='btn' href='" + TIPS + "'>Get the tips</a></div>" +
+        "<div class='card'><h3>How to Play Coreball</h3><p>Learn the controls, the rules, and how collision works — step by step.</p><a class='btn' href='" + HOW + "'>Read the guide</a></div>" +
+        "<div class='card'><h3>Coreball Tips &amp; Tricks</h3><p>Practical techniques for reading gaps, keeping rhythm, and beating harder levels.</p><a class='btn' href='" + TIPS + "'>Get the tips</a></div>" +
         "</div>" +
+        "<p><a href='" + LEVELS + "'>Coreball levels explained</a> · <a href='" + FAQ + "'>Read the full FAQ</a></p>" +
+        site.adBottom() +
         "</section>" +
         "</main>";
     },
@@ -110,12 +111,13 @@ export const pages = [
         "<h1>Coreball Guides</h1>" +
         "<p class='lead'>Short, practical guides that help you go from your first shot to the later, faster levels of Coreball. No fluff — just the rules, controls, and timing ideas that matter.</p>" +
         "<div class='card-grid'>" +
-        "<div class='card'><h2>How to Play Coreball</h2><p>The full beginner guide: goal, controls, step-by-step play, collision, and level progression.</p><a class='btn' href='" + HOW + "'>Read How to Play</a></div>" +
-        "<div class='card'><h2>Coreball Tips &amp; Tricks</h2><p>How to read gaps, keep a reliable rhythm, and handle speed changes and direction flips.</p><a class='btn' href='" + TIPS + "'>Read the Tips</a></div>" +
+        "<div class='card'><h3>How to Play Coreball</h3><p>The full beginner guide: goal, controls, step-by-step play, collision, and level progression.</p><a class='btn' href='" + HOW + "'>Read How to Play</a></div>" +
+        "<div class='card'><h3>Coreball Tips &amp; Tricks</h3><p>How to read gaps, keep a reliable rhythm, and handle speed changes and direction flips.</p><a class='btn' href='" + TIPS + "'>Read the Tips</a></div>" +
         "</div>" +
         "<h2>Start Playing Now</h2>" +
         "<p>Ready to put the advice into practice? The game is available on the homepage with all 500 levels unlocked progressively.</p>" +
         "<p><a class='btn btn-primary' href='/'>Play Coreball Online</a></p>" +
+        "<p>Related: <a href='/levels/'>All 500 Coreball levels explained</a> · <a href='/faq/'>Coreball FAQ</a></p>" +
         "</main>";
     },
     jsonLd() {
@@ -321,6 +323,103 @@ export const pages = [
       return [
         breadcrumbSchema([["Home", "/"], ["Terms", "/terms/"]]),
         webPageSchema("en", "/terms/", "Terms of Use", "CoreBall terms of use."),
+      ];
+    },
+  },
+
+  {
+    path: "/levels/",
+    file: "levels/index.html",
+    lang: "en",
+    title: "Coreball Levels – 500 Levels Explained & Progression Guide | CoreBall",
+    description:
+      "How Coreball's 500 levels work: unlocking, saved progress, difficulty bands, layout patterns, and why every level is always the same when you replay it.",
+    imageAlt: "Coreball level system and difficulty progression guide.",
+    main() {
+      return "<main id='main' class='legal'>" +
+        breadcrumbsHtml([["Home", "/"], ["Levels", LEVELS]]) +
+        "<h1>Coreball Levels – 500 Levels Explained</h1>" +
+        "<p class='lead'>Coreball has 500 levels, each with an original, fixed layout. This page explains how levels unlock, how the difficulty grows, and the patterns you will learn to read.</p>" +
+        "<h2>How Levels Unlock</h2>" +
+        "<p>Clear a level to unlock the next one. Progress is saved automatically in your browser's local storage, so the game always offers to continue from your highest unlocked level — you never have to replay from Level 1. The level selector marks cleared levels with a check mark and locks the ones you have not reached yet.</p>" +
+        "<h2>Difficulty Progression</h2>" +
+        "<p>Difficulty comes from a combination of pre-inserted pins, rotation speed, gap sizes, and layout shapes rather than ever-growing pin walls. A rough guide:</p>" +
+        "<ul><li><strong>Levels 1–10 · warm-up:</strong> 2–6 pre-inserted pins, slow rotation and wide gaps.</li>" +
+        "<li><strong>Levels 11–30 · building:</strong> 4–8 pins, faster spin, first counter-clockwise levels.</li>" +
+        "<li><strong>Levels 31–60 · tightening:</strong> 6–10 pins, cluster layouts and accelerating spins.</li>" +
+        "<li><strong>Levels 61–100 · demanding:</strong> 8–12 pins, mirror, narrow-gap and dense patterns.</li>" +
+        "<li><strong>Levels 101–200 · advanced:</strong> 10–13 pins with steadily higher speed.</li>" +
+        "<li><strong>Levels 201–350 · expert:</strong> 12–13 pins, faster rings, more direction changes.</li>" +
+        "<li><strong>Levels 351–500 · master:</strong> up to 15 pins and the fastest rotation of all.</li></ul>" +
+        "<h2>Layout Patterns You Will Meet</h2>" +
+        "<p>Every level uses one of several designed arrangements so the start of each level looks different:</p>" +
+        "<ul><li><strong>Uniform ring</strong> — pins spread evenly around the core.</li>" +
+        "<li><strong>Dense blocks</strong> — a tight group on one side (top, bottom, left or right), with a wide open arc to fill.</li>" +
+        "<li><strong>Two clusters</strong> — two separate groups facing each other.</li>" +
+        "<li><strong>Mirror layouts</strong> — a symmetric arrangement.</li>" +
+        "<li><strong>Irregular scatter</strong> — pins placed at uneven angles.</li>" +
+        "<li><strong>Narrow gap</strong> — one deliberately tight window among wider ones.</li></ul>" +
+        "<h2>Fixed, Replayable Levels</h2>" +
+        "<p>Levels are generated from a fixed seed (the level number), so Level 27 always has the exact same layout every time you open it. That makes practice meaningful: learn the rhythm of a level and you can clear it consistently.</p>" +
+        "<h2>Start Playing</h2>" +
+        "<p>Ready to climb the ladder? The game is right on the homepage, and every shot starts from a clear gap with the next pin waiting below the core.</p>" +
+        "<p><a class='btn btn-primary' href='/'>Play Coreball Online</a> <a class='btn' href='" + HOW + "'>How to Play</a></p>" +
+        "</main>";
+    },
+    jsonLd() {
+      const title = "Coreball Levels – 500 Levels Explained";
+      const desc = "How Coreball's 500 levels work: unlocking, difficulty bands, layout patterns and fixed replayable layouts.";
+      return [
+        breadcrumbSchema([["Home", "/"], ["Levels", LEVELS]]),
+        articleSchema("en", LEVELS, title, desc),
+      ];
+    },
+  },
+
+  {
+    path: "/faq/",
+    file: "faq/index.html",
+    lang: "en",
+    title: "Coreball FAQ – Frequently Asked Questions | CoreBall",
+    description:
+      "Answers to the most common Coreball questions: what it is, how to play, controls, mobile support, level count, progress saving, and collision timing.",
+    imageAlt: "Coreball frequently asked questions.",
+    main() {
+      const qa = [
+        ["What is Coreball?", "Coreball is a free timing puzzle played in the browser. A small core rotates with pins already planted in it, and you fire the next pin into the gaps. The twist is that the core never stops, so you have to time every shot."],
+        ["How do you play Coreball?", "Tap the screen, click the mouse, or press Space to launch the pin that waits below the core. If it lands without touching an existing pin it attaches and rotates with the core. Place every pin required by the level to win. After a failed shot you can tap anywhere to restart the level instantly."],
+        ["Is Coreball free?", "Yes. Coreball is free to play online in your browser with no registration, no login, and no download. Advertising may appear outside the game area."],
+        ["Can I play Coreball on mobile?", "Yes. Coreball is optimized for phones and tablets and supports touch controls on iPhone Safari and Android Chrome."],
+        ["How many levels are there?", "500. Every level starts with pins already inserted and has a fixed, reproducible layout, so you can practice any unlocked level as often as you like."],
+        ["Does Coreball save my progress?", "Yes — the game stores your highest unlocked level and sound setting in your browser's local storage on that device. Clearing your browser data resets progress."],
+        ["Why did I hit a pin although the gap looked wide enough?", "Collisions are checked precisely against both the pin heads and their shafts, and the core keeps rotating while your pin flies. Aim when your chosen gap is lined up with the dashed shot path, and remember the pin needs a moment to travel."],
+        ["Is this the official Coreball?", "No. CoreBall is an independent fan-made game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website."],
+      ];
+      return "<main id='main' class='legal'>" +
+        breadcrumbsHtml([["Home", "/"], ["FAQ", FAQ]]) +
+        "<h1>Coreball FAQ</h1>" +
+        "<p class='lead'>Short, honest answers to the questions players ask most often. Playing is always the best way to learn — the game is right on the homepage.</p>" +
+        "<div class='faq'>" +
+        qa.map((f) => "<details><summary>" + f[0] + "</summary><p class='a'>" + f[1] + "</p></details>").join("") +
+        "</div>" +
+        "<h2>Still Have a Question?</h2>" +
+        "<p>Read the <a href='" + HOW + "'>How to Play guide</a>, the <a href='" + TIPS + "'>Tips &amp; Tricks</a>, or the <a href='" + LEVELS + "'>level breakdown</a> for more detail.</p>" +
+        "<p><a class='btn btn-primary' href='/'>Play Coreball Online</a></p>" +
+        "</main>";
+    },
+    jsonLd() {
+      const qa = [
+        { q: "What is Coreball?", a: "Coreball is a free timing puzzle played in the browser. A small core rotates with pins already planted in it, and you fire the next pin into the gaps." },
+        { q: "How do you play Coreball?", a: "Tap the screen, click, or press Space to launch the pin waiting below the core. Place every pin required by the level without touching existing pins to win." },
+        { q: "Is Coreball free?", a: "Yes. Coreball is free to play online with no registration, login, or download." },
+        { q: "Can I play Coreball on mobile?", a: "Yes. Coreball supports touch controls on iPhone Safari and Android Chrome." },
+        { q: "How many levels are there?", a: "500, each with a fixed, reproducible layout." },
+        { q: "Does Coreball save my progress?", a: "Yes, the highest unlocked level is stored in the browser's local storage on the device." },
+        { q: "Is this the official Coreball?", a: "No. CoreBall is an independent fan-made game inspired by classic Coreball-style gameplay and is not affiliated with any original publisher." },
+      ];
+      return [
+        breadcrumbSchema([["Home", "/"], ["FAQ", FAQ]]),
+        faqSchema(qa),
       ];
     },
   },

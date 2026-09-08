@@ -36,7 +36,8 @@ const DEFAULT_I18N: Record<string, string> = {
   currentLevel: "Level {0} (current)",
   statusReady: "Coreball ready. Press Play to start.",
   statusPlaying: "Level {0}. {1} pins left.",
-  statusFailed: "Game over on level {0}.",
+  statusFailed: "Game over on level {0}. Tap to retry.",
+  tapToRetry: "Tap to Retry",
   statusSuccess: "Level {0} complete.",
   statusPaused: "Game paused.",
 };
@@ -61,7 +62,6 @@ const canvas = $<HTMLCanvasElement>("coreball-canvas");
 const overlay = $<HTMLDivElement>("game-overlay");
 const readyPanel = $<HTMLDivElement>("overlay-ready");
 const successPanel = $<HTMLDivElement>("overlay-success");
-const failedPanel = $<HTMLDivElement>("overlay-failed");
 const pausedPanel = $<HTMLDivElement>("overlay-paused");
 const readyTitle = $<HTMLHeadingElement>("ready-title");
 const readySub = $<HTMLParagraphElement>("ready-sub");
@@ -70,10 +70,6 @@ const successTitle = $<HTMLHeadingElement>("success-title");
 const successSub = $<HTMLParagraphElement>("success-sub");
 const btnNext = $<HTMLButtonElement>("btn-next");
 const btnLevelsSuccess = $<HTMLButtonElement>("btn-levels-success");
-const failedTitle = $<HTMLHeadingElement>("failed-title");
-const failedSub = $<HTMLParagraphElement>("failed-sub");
-const btnRetry = $<HTMLButtonElement>("btn-retry");
-const btnLevelsFailed = $<HTMLButtonElement>("btn-levels-failed");
 const pausedTitle = $<HTMLHeadingElement>("paused-title");
 const btnResume = $<HTMLButtonElement>("btn-resume");
 const hudLevel = $<HTMLSpanElement>("hud-level");
@@ -88,6 +84,7 @@ const pauseLabel = $<HTMLSpanElement>("pause-label");
 const btnRestart = $<HTMLButtonElement>("btn-restart");
 const btnLevels = $<HTMLButtonElement>("btn-levels");
 const levelBanner = $<HTMLDivElement>("level-banner");
+const retryToast = $<HTMLDivElement>("retry-toast");
 const modal = $<HTMLDialogElement>("level-modal");
 const modalTitle = $<HTMLHeadingElement>("level-modal-title");
 const modalGrid = $<HTMLDivElement>("level-grid");
@@ -97,6 +94,9 @@ let progress: Progress = loadProgress();
 let currentLevel = Math.max(1, Math.min(LEVEL_COUNT, progress.unlocked));
 let hasStarted = false;
 let bannerTimer = 0;
+let toastTimer = 0;
+let failAt = 0;
+const RETRY_DELAY_MS = 350; // short lock so accidental extra taps do not skip the level
 
 const engine = new CoreballEngine();
 const audio = new AudioSynth();
@@ -113,6 +113,7 @@ engine.attach(canvas, {
 });
 
 function handleStateChange(state: string, level: number): void {
+  document.body.setAttribute("data-game-state", state);
   if (state === "ready") {
     showPanel(readyPanel);
     readyTitle.textContent = t("play");
@@ -139,11 +140,17 @@ function handleStateChange(state: string, level: number): void {
     track("level_complete", { level });
     if (allClear) track("game_complete", { level });
   } else if (state === "failed") {
-    showPanel(failedPanel);
-    failedTitle.textContent = t("gameOver");
-    failedSub.textContent = fmt(t("level"), [level]);
+    // no Game Over screen: after a short fail feedback the player just taps
+    // anywhere (or presses Space/Enter) to restart the same level instantly
+    hideOverlay();
     hudStatus.textContent = fmt(t("statusFailed"), [level]);
-    focusPrimary(btnRetry);
+    failAt = performance.now();
+    retryToast.textContent = t("tapToRetry");
+    retryToast.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      retryToast.hidden = true;
+    }, 1500);
     track("level_failed", { level });
   } else if (state === "paused") {
     showPanel(pausedPanel);
@@ -170,6 +177,8 @@ function handleHud(hud: { level: number; ballsLeft: number; attached: number; to
 }
 
 function startLevel(id: number): void {
+  retryToast.hidden = true;
+  window.clearTimeout(toastTimer);
   currentLevel = Math.max(1, Math.min(LEVEL_COUNT, id));
   engine.startLevel(currentLevel);
   track("level_start", { level: currentLevel });
@@ -190,10 +199,17 @@ function play(): void {
 }
 
 function showPanel(panel: HTMLElement): void {
-  [readyPanel, successPanel, failedPanel, pausedPanel].forEach((p) => {
+  [readyPanel, successPanel, pausedPanel].forEach((p) => {
     p.hidden = p !== panel;
   });
   overlay.classList.remove("overlay-hidden");
+}
+
+function retryLevel(): void {
+  retryToast.hidden = true;
+  window.clearTimeout(toastTimer);
+  track("level_retry", { level: currentLevel });
+  startLevel(currentLevel);
 }
 
 function hideOverlay(): void {
@@ -221,13 +237,8 @@ btnPlay.addEventListener("click", play);
 btnNext.addEventListener("click", () => {
   if (currentLevel < LEVEL_COUNT) startLevel(currentLevel + 1);
 });
-btnRetry.addEventListener("click", () => {
-  track("level_retry", { level: currentLevel });
-  startLevel(currentLevel);
-});
 btnResume.addEventListener("click", () => engine.resume());
 btnLevelsSuccess.addEventListener("click", openLevels);
-btnLevelsFailed.addEventListener("click", openLevels);
 btnLevels.addEventListener("click", openLevels);
 btnSound.addEventListener("click", toggleSound);
 btnCloseModal.addEventListener("click", closeLevels);
@@ -244,6 +255,9 @@ canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   if (engine.state === "ready") play();
   else if (engine.state === "playing") engine.fire();
+  else if (engine.state === "failed" && performance.now() - failAt > RETRY_DELAY_MS) {
+    retryLevel();
+  }
 });
 
 overlay.addEventListener("pointerdown", (e) => {
@@ -262,6 +276,9 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     if (engine.state === "ready") play();
     else if (engine.state === "playing") engine.fire();
+    else if (engine.state === "failed" && performance.now() - failAt > RETRY_DELAY_MS) {
+      retryLevel();
+    }
   }
   if (e.code === "KeyP" && !modal.open) {
     if (engine.state === "playing") engine.pause();

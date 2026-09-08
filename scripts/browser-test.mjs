@@ -83,13 +83,28 @@ ok("pin heads rendered (colored pixels)", band.colored > 40, "colored=" + band.c
 const readyRegion = regionStats(px, cx - 24, px.h - 46, cx + 24, px.h - 4);
 ok("ready pin visible", readyRegion.colored > 0, JSON.stringify(readyRegion.sample));
 
+// A first shot can legitimately fail if a pin happens to be in the lane at that
+// moment, so fire until one shot attaches (retrying by tap after any failure).
+const readStateA = () => page.evaluate(() => document.body.getAttribute("data-game-state") || "");
 const before = await page.textContent("#hud-balls");
-await page.click("#coreball-canvas");
-await page.waitForTimeout(700);
+let shotOk = false;
+for (let i = 0; i < 15 && !shotOk; i++) {
+  const st = await readStateA();
+  if (st === "playing") {
+    await page.click("#coreball-canvas");
+    await page.waitForTimeout(650);
+    if ((await readStateA()) === "playing" && (await page.textContent("#hud-balls")) !== before) shotOk = true;
+  } else if (st === "failed") {
+    await page.waitForTimeout(450);
+    await page.click("#coreball-canvas");
+    await page.waitForTimeout(400);
+  }
+}
 const after = await page.textContent("#hud-balls");
-ok("shot fired and attached (Pins decreased)", before !== after, before + " -> " + after);
+ok("shot fired and attached (Pins decreased)", shotOk, before + " -> " + after);
 ok("progress bar grew", (await page.locator("#progress-fill").evaluate((el) => el.style.width)) !== "0%");
 
+await page.waitForTimeout(200);
 px = await canvasPixels(page);
 ok("ready pin re-appears for next shot", regionStats(px, cx - 24, px.h - 46, cx + 24, px.h - 4).colored > 0);
 
@@ -154,19 +169,27 @@ await pickLevel(pageB, 10);
 const h10 = await canvasHash(pageB);
 ok("level layouts differ (L5 vs L10)", h5 !== h10, h5 + " vs " + h10);
 
+// On a collision the level is lost without any Game Over screen; tapping the
+// canvas again must restart the same level instantly.
+const stateOf = () => pageB.evaluate(() => document.body.getAttribute("data-game-state") || "");
 let failed = false;
-for (let i = 0; i < 40 && !failed; i++) {
-  await pageB.click("#coreball-canvas");
-  await pageB.waitForTimeout(110);
-  failed = await pageB.locator("#overlay-failed").isVisible().catch(() => false);
+const fullPins = await pageB.textContent("#hud-balls");
+for (let i = 0; i < 60 && !failed; i++) {
+  await pageB.click("#coreball-canvas", { position: { x: 100, y: 300 } });
+  await pageB.waitForTimeout(120);
+  failed = (await stateOf()) === "failed";
 }
 if (failed) {
-  ok("game over overlay appears on collision", true);
-  await pageB.click("#btn-retry");
-  await pageB.waitForTimeout(400);
-  ok("retry restarts level", await pageB.locator("#game-overlay").evaluate((el) => el.classList.contains("overlay-hidden")));
+  ok("collision leads to failed state (no overlay)", true);
+  const toastShown = await pageB.locator("#retry-toast").isVisible().catch(() => false);
+  ok("retry hint appears (no Game Over panel)", toastShown);
+  await pageB.waitForTimeout(450); // respect the tap lockout after a fail
+  await pageB.click("#coreball-canvas", { position: { x: 100, y: 300 } });
+  await pageB.waitForTimeout(500);
+  ok("tap anywhere restarts the level", (await stateOf()) === "playing", await stateOf());
+  ok("level pins reset after retry", (await pageB.textContent("#hud-balls")) === fullPins, fullPins + " -> " + (await pageB.textContent("#hud-balls")));
 } else {
-  ok("game over overlay appears on collision", false, "no fail within 40 shots");
+  ok("collision leads to failed state (no overlay)", false, "no fail within 60 shots");
 }
 ok("no console errors (desktop L5/L10)", errsB.length === 0, errsB.slice(0, 3).join(" | "));
 await pageB.close();
@@ -188,6 +211,17 @@ await mob.tap("#coreball-canvas");
 await mob.waitForTimeout(700);
 const mAfter = await mob.textContent("#hud-balls");
 ok("mobile tap shoots", mBefore !== mAfter, mBefore + " -> " + mAfter);
+// consecutive shots must keep firing on mobile (regression: stuck pin bug)
+let seq = [mAfter];
+let okSeq = true;
+for (let i = 0; i < 3; i++) {
+  await mob.tap("#coreball-canvas");
+  await mob.waitForTimeout(450);
+  const now = await mob.textContent("#hud-balls");
+  seq.push(now);
+  if (now === seq[seq.length - 2]) okSeq = false;
+}
+ok("mobile consecutive shots keep firing", okSeq, seq.join(" -> "));
 await mob.screenshot({ path: "scripts/screenshots/ja-mobile.png" });
 ok("no console errors (mobile)", errsC.length === 0, errsC.slice(0, 3).join(" | "));
 await mob.close();

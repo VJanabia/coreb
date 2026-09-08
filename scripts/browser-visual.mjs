@@ -99,12 +99,21 @@ await page.click("#btn-levels");
 await page.waitForTimeout(200);
 await page.click("#level-grid .level-btn:nth-child(10)");
 await page.waitForTimeout(700);
+const stateOf = () => page.evaluate(() => document.body.getAttribute("data-game-state") || "");
 let failed = false;
 for (let i = 0; i < 40 && !failed; i++) {
   await shot();
-  failed = await page.locator("#overlay-failed").isVisible().catch(() => false);
+  failed = (await stateOf()) === "failed";
 }
 ok("collision triggers on L10 (game over)", failed);
+if (failed) {
+  await page.waitForTimeout(450); // tap lockout after a fail
+  await page.click("#coreball-canvas");
+  await page.waitForTimeout(500);
+  ok("tap after collision restarts level", (await stateOf()) === "playing", await stateOf());
+} else {
+  ok("tap after collision restarts level", false, "no fail reached");
+}
 ok("no page errors", errs.length === 0, errs.slice(0, 2).join(" | "));
 
 await browser.close();
