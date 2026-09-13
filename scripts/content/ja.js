@@ -25,28 +25,28 @@ const FAQ = "/ja/faq/";
 
 const homeFaq = [
   {
-    q: "まち針ゲームとは？",
-    a: "回転するコアのすき間に針を刺していく、タイミングと集中力が重要な無料ブラウザゲームです。すでに刺さっている針に当たるとゲームオーバーになります。",
-  },
-  {
-    q: "まち針ゲームの遊び方は？",
-    a: "画面をタップ、クリック、またはスペースキーを押して針を発射します。回転するコアのすき間を狙って、必要な本数の針を刺せばレベルクリアです。",
-  },
-  {
     q: "無料で遊べますか？",
-    a: "はい。登録もログインもダウンロードも不要で、ブラウザですぐ無料で遊べます。",
+    a: "はい。登録・ログイン・ダウンロードはすべて不要で、ブラウザでこのページを開けばそのまま無料で遊べます。",
   },
   {
-    q: "スマホで遊べますか？",
-    a: "はい。iPhone の Safari と Android の Chrome に対応しており、画面をタップするだけで操作できます。",
+    q: "スマホでも遊べますか？",
+    a: "はい。iPhone の Safari と Android の Chrome に対応しており、画面をタップするだけで針を発射できます。",
   },
   {
     q: "何レベルありますか？",
-    a: "最初のリリースには500レベルあります。クリアした進捗はブラウザに自動保存され、ロックが解除されたレベルはいつでも選んで遊べます。",
+    a: "500レベルあります。最初から針が刺さった状態でスタートし、残りの針をすき間へ差し込んでいきます。",
+  },
+  {
+    q: "進捗（クリア状況）は保存されますか？",
+    a: "はい。最高到達レベルとサウンド設定が、お使いのブラウザ（localStorage）に自動保存されます。サーバーには送信されないため、ブラウザのデータを消去するとリセットされます。",
   },
   {
     q: "オンラインで遊べますか？",
-    a: "はい。このページを開くだけで、インストール不要ですぐにオンラインで遊べます。",
+    a: "はい。インストール不要で、このページを開いた時点からオンラインで遊べます。",
+  },
+  {
+    q: "広告がゲームの操作を邪魔しませんか？",
+    a: "広告はゲーム領域の外側（ゲームの下や本文中）にのみ配置しており、発射・一時停止・レベル選択などの操作ボタンには重なりません。",
   },
 ];
 
@@ -67,13 +67,26 @@ export const pages = [
         "<section class='content'>" +
         "<p class='lead'>まち針ゲームは無料のオンラインブラウザゲームです。小さなコアには最初から針が刺さっており、画面下の「次の1本」をいちばん広いすき間へ向けて発射します。タイミングを誤ると失敗になりますが、画面をタップするだけで同じレベルにすぐ再挑戦できます。登録もダウンロードも不要で、スマホ・パソコンですぐ遊べます。</p>" +
         site.adTop() +
-        "<h2>まち針ゲームの遊び方</h2>" +
+        "<h2>Coreball（まち針ゲーム）とはどんなゲームですか？</h2>" +
+        "<p>Coreball（まち針ゲーム）は、画面中央で回り続ける「コア」に向けて、下に待機している針を1本ずつ発射するタイミングゲームです。コアには最初から何本かの針が刺さっており、プレイヤーはそれらの針に当たらないよう、すき間を選んで新しい針を刺していきます。</p>" +
+        "<p>決められた本数の針をすべて刺し終えるとレベルクリア、1本でも既存の針に触れるとそのレベルは失敗になります。コアは止まらないため、ねらいを定める「タイミング」がそのまま得点につながるシンプルな作りです。当サイトの Coreball は、クラシックなまち針ゲームの遊び方を参考に独自実装したファンメイドのブラウザゲームで、特定の原作者や出版社とは関係ありません。</p>" +
+        "<h2>Coreballの遊び方は？</h2>" +
         "<ol><li>「今すぐ遊ぶ」を押すか、ゲーム画面をタップします。</li><li>回転するコアをよく見て、すでに刺さっている針の間からすき間を探します。</li><li>画面のタップ、クリック、またはスペースキーで針を発射します。</li><li>すでに刺さっている針に当てず、必要な本数だけ刺します。</li><li>レベルをクリアすると次のレベルが解放されます。失敗してもタップするだけで同じレベルからすぐ再開できます。</li></ol>" +
-        "<p class='sources'>当サイトのゲームは HTML5 の <code>canvas</code> 要素で描画しています。WHATWG の HTML Standard は canvas を「a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly」と定義しています（出典: <a href='https://html.spec.whatwg.org/multipage/canvas.html' rel='noopener nofollow' target='_blank'>WHATWG HTML Standard</a>）。解放済みレベルは端末内の localStorage に保存し（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）、マウス・タッチ・キーボードの入力はポインターイベントとキーイベントで処理しています（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）。</p>" +
-        "<h2>レベルについて</h2>" +
-        "<p>500レベルすべてに最初から針が刺さっており（レベル1は2本）、残ったすき間に針を差し込んでいきます。針の本数、コアの回転速度、回転方向の変化、密度の高い配置で難易度が上がり、進捗はブラウザに自動保存されます。各レベルのレイアウトは固定されているため、練習すれば確実に攻略できます。</p>" +
+        "<h2>操作方法は？（PC・スマホ）</h2>" +
+        "<ul>" +
+        "<li><strong>PC（マウス）:</strong> ゲーム画面をクリックすると針を発射します。</li>" +
+        "<li><strong>PC（キーボード）:</strong> スペースキーまたは Enter キーでも発射できます。P キーで一時停止／再開、R キーで同じレベルをやり直せます。</li>" +
+        "<li><strong>スマホ・タブレット:</strong> 画面をタップすると発射します（iPhone の Safari / Android の Chrome に対応）。</li>" +
+        "<li><strong>失敗したとき:</strong> 画面をタップすると、同じレベルにその場で再挑戦できます。</li>" +
+        "<li><strong>クリアしたとき:</strong> 「タップで次のレベル」をタップすると次のレベルへ進みます。</li>" +
+        "<li><strong>サウンド:</strong> 初期状態は OFF です。サウンドボタンを押すと効果音が有効になります。</li>" +
+        "<li><strong>レベル選択:</strong> 解放済みのレベルは一覧からいつでも選び直せます。</li>" +
+        "</ul>" +
+        "<p class='sources'>当サイトのゲームは HTML5 の <code>canvas</code> 要素で描画しています。WHATWG の HTML Standard は canvas を「a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly」と定義しています（出典: <a href='https://html.spec.whatwg.org/multipage/canvas.html' rel='noopener nofollow' target='_blank'>WHATWG HTML Standard</a>）。解放済みレベルは端末内の localStorage に保存し（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）、マウス・タッチ・キーボードの入力はポインターイベントとキーイベントで処理しています（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）。描画は requestAnimationFrame で毎フレーム更新し、コアの回転・針の移動・当たり判定をその都度計算しています（API の仕様: <a href='https://developer.mozilla.org/ja/docs/Web/API/Window/requestAnimationFrame' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）。</p>" +
+        "<h2>レベルはどうやって解放されますか？</h2>" +
+        "<p>レベルをクリアすると次のレベルが解放されます。500レベルすべてに最初から針が刺さっており（レベル1は2本）、残ったすき間に針を差し込んでいきます。針の本数、コアの回転速度、回転方向の変化、密度の高い配置で難易度が上がり、進捗はブラウザに自動保存されます。各レベルのレイアウトは固定されているため、練習すれば確実に攻略できます。</p>" +
         "<p><a class='btn btn-primary' href='" + LEVELS + "'>500レベルの仕組みを詳しく見る</a></p>" +
-        "<h2>まち針ゲームのコツ</h2>" +
+        "<h2>Coreballを攻略するコツは？</h2>" +
         "<ul><li>画面下に待機している針が次に発射する針です。点線の軌道を目安にタイミングを合わせましょう。</li><li>いちばん広いすき間を狙い、消えかけたすき間には無理に打ち込まない。</li><li>目で追いかけるより、一定のリズムで発射する方が安定します。</li><li>回転が速いレベルでは、すき間が点線の正面に来る少し前に打つのがコツです。</li><li>回転方向の変化や、刺すほど加速するレベルにも注意しましょう。</li><li>失敗してもペナルティはありません。タップして角度を変えて再挑戦しましょう。</li><li>レベル選択から、解放済みのレベルを何度でも練習できます。</li></ul>" +
         "<h2>よくある質問</h2>" +
         "<div class='faq'>" +
