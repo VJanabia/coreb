@@ -67,10 +67,12 @@ const HEAD_PER = 0.0016;
 const HEAD_MIN = 0.08;
 const MARGIN = 0.8;
 const SHAFT_MARGIN = 1.0;
-const WINDUP = 0.035;      // short pre-launch cue before the pin flies
-const FLIGHT_TIME = 0.03;  // target fly time (fast, but visible on small canvases)
-const FLIGHT_TIMEOUT = 0.25; // watchdog: a stuck flight lands quickly, never hangs
+const WINDUP = 0;          // launch immediately on tap (no pre-launch delay)
+const FLIGHT_TIME = 0.022; // target fly time: ~1 frame, so input feels instant
+const FLIGHT_TIMEOUT = 0.2; // watchdog: a stuck flight lands quickly, never hangs
 const MAX_SPEED = (95 * Math.PI) / 180; // rotation cap (rad/s)
+
+const DASH_RING: number[] = [4, 7];
 
 const PIN_COLORS = [
   "#e5484d", "#f76b15", "#ffb224", "#46a758", "#12a594",
@@ -108,6 +110,8 @@ export class CoreballEngine {
   private total = 0;
 
   private dpr = 1;
+  private coreGrad: CanvasGradient | null = null;
+  private coreGradR = -1;
   private w = 0; private h = 0; private cx = 0; private cy = 0;
   private R = 0; private shaftLen = 0; private headR = 0; private rh = 0;
   private projSpeed = 0; private readyOffset = 0;
@@ -128,7 +132,9 @@ export class CoreballEngine {
   }
 
   setDpr(dpr: number): void {
-    this.dpr = Math.max(1, Math.min(2, dpr));
+    // 1.5x is visually indistinguishable from 2x on a phone but cuts the
+    // per-frame fill rate by ~44%, which matters on emulated/throttled devices.
+    this.dpr = Math.max(1, Math.min(1.5, dpr));
   }
 
   resize(w: number, h: number): void {
@@ -151,8 +157,9 @@ export class CoreballEngine {
     // never derive the flight speed from a degenerate (0-sized) layout: that
     // produced a crawling pin and a visible multi-hundred-ms delay.
     const dim = Math.max(w, h) > 0 ? Math.max(w, h) : 400;
-    const speedForVisibility = flyDist / FLIGHT_TIME;
-    this.projSpeed = Math.min(dim * 4.0, Math.max(speedForVisibility, dim * 1.2));
+    // No upper cap: the flight is kept to ~FLIGHT_TIME so the shot registers as
+    // fast as the browser can paint, instead of adding visible input latency.
+    this.projSpeed = Math.max(flyDist / FLIGHT_TIME, dim * 1.5);
     if (hadProjectile) {
       this.projectile.x = this.cx;
       this.projectile.y = this.cy + Math.max(keepRadius, this.rh + 1);
@@ -193,7 +200,7 @@ export class CoreballEngine {
     this.projectile.x = this.cx;
     this.projectile.y = this.h - this.readyOffset;
     this.projectile.color = pinColor(this.pins.length);
-    this.projectile.phase = "windup";
+    this.projectile.phase = WINDUP > 0 ? "windup" : "fly";
     this.projectile.phaseT = 0;
     this.shotsLeft--;
     this.events?.onShoot();
@@ -283,13 +290,17 @@ export class CoreballEngine {
       }
     }
 
-    for (const p of this.particles) {
+    // in-place compaction (avoids allocating a new array every frame)
+    let write = 0;
+    for (let i = 0; i < this.particles.length; i++) {
+      const p = this.particles[i];
       p.life -= dt;
       p.vy += 260 * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      if (p.life > 0) this.particles[write++] = p;
     }
-    this.particles = this.particles.filter((p) => p.life > 0);
+    this.particles.length = write;
   }
 
   private stepProjectile(dt: number): void {
@@ -452,7 +463,7 @@ export class CoreballEngine {
 
     // faint aiming ring + guide line for the waiting pin
     ctx.beginPath();
-    ctx.setLineDash([4, 7]);
+    ctx.setLineDash(DASH_RING);
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "rgba(96,108,136,0.3)";
     ctx.arc(0, 0, this.rh, 0, Math.PI * 2);
@@ -460,15 +471,19 @@ export class CoreballEngine {
     ctx.setLineDash([]);
 
     // core
-    const grad = ctx.createRadialGradient(
-      -this.R * 0.35, -this.R * 0.4, this.R * 0.08, 0, 0, this.R * 1.02
-    );
-    grad.addColorStop(0, "#64779f");
-    grad.addColorStop(0.45, "#41527a");
-    grad.addColorStop(1, "#26314f");
+    if (!this.coreGrad || this.coreGradR !== this.R) {
+      const grad = ctx.createRadialGradient(
+        -this.R * 0.35, -this.R * 0.4, this.R * 0.08, 0, 0, this.R * 1.02
+      );
+      grad.addColorStop(0, "#64779f");
+      grad.addColorStop(0.45, "#41527a");
+      grad.addColorStop(1, "#26314f");
+      this.coreGrad = grad;
+      this.coreGradR = this.R;
+    }
     ctx.beginPath();
     ctx.arc(0, 0, this.R, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
+    ctx.fillStyle = this.coreGrad;
     ctx.fill();
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(20,28,48,0.35)";

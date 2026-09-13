@@ -384,7 +384,8 @@ modal.addEventListener("click", (e) => {
 
 function fitCanvas(): void {
   const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // keep this cap in sync with engine.setDpr (1.5x)
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   const w = Math.max(120, Math.round(rect.width));
   const h = Math.max(120, Math.round(rect.height));
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
