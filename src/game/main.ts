@@ -266,11 +266,17 @@ btnRestart.addEventListener("click", () => {
 });
 
 let lastTapAt = 0;
+// Some browsers deliver a whole gesture as pointerdown -> pointerup -> click.
+// Acting on more than one of them fires two shots from a single tap, which
+// lands the second pin in the lane the first one just occupied (instant loss).
+// So: pointerdown is the one true entry point, and click is only a fallback for
+// browsers that never deliver pointer events at all.
+let pointerEventsWork = false;
 
-// Single entry point for every tap/click, whichever event the browser delivers.
 function handleGameTap(): void {
   const now = performance.now();
-  if (now - lastTapAt < 120) return; // dedupe pointerdown + pointerup/click
+  // guard against a duplicate event from the same physical tap
+  if (now - lastTapAt < 90) return;
   if (engine.state === "ready") {
     lastTapAt = now;
     play();
@@ -288,11 +294,13 @@ function handleGameTap(): void {
 
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
+  pointerEventsWork = true;
   handleGameTap();
 });
-// fallback: some mobile browsers / in-app WebViews drop pointerdown on canvas
-canvas.addEventListener("pointerup", () => handleGameTap());
-canvas.addEventListener("click", () => handleGameTap());
+// fallback only for browsers without pointer events (never fires twice)
+canvas.addEventListener("click", () => {
+  if (!pointerEventsWork) handleGameTap();
+});
 
 overlay.addEventListener("pointerdown", (e) => {
   if (engine.state !== "ready") return;
