@@ -8,6 +8,42 @@ export const SITE_NAME = "CoreBall";
 export const LEVEL_COUNT = 500;
 export const BUILD_DATE = new Date().toISOString().slice(0, 10);
 
+// Entity / authorship facts. These are real, fixed values (not per-build):
+// - the source repository is the project's own public GitHub repo
+// - the publisher identity is the site brand (no invented personal author)
+// - dates come from the project history: first release and last content update
+export const SITE_AUTHOR_NAME = "Coreball Online";
+export const SITE_REPO = "https://github.com/VJanabia/coreb";
+export const CONTACT_EMAIL = "admin@coreball.online";
+export const SITE_PUBLISHED = "2026-08-25";
+export const SITE_UPDATED = "2026-09-08";
+export const SITE_UPDATED_LABEL = { en: "September 2026", ja: "2026年9月" };
+
+// Publisher/author node reused by the structured data (brand-level, no fake person).
+function brandNode() {
+  return {
+    "@type": "Organization",
+    name: SITE_AUTHOR_NAME,
+    url: SITE_ORIGIN + "/",
+    sameAs: [SITE_REPO],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: CONTACT_EMAIL,
+      url: SITE_ORIGIN + "/contact/",
+    },
+  };
+}
+
+function workMeta() {
+  return {
+    author: brandNode(),
+    publisher: brandNode(),
+    datePublished: SITE_PUBLISHED,
+    dateModified: SITE_UPDATED,
+  };
+}
+
 // Build-time integrations. Unset => feature stays disabled (no third-party request).
 // Google Analytics 4 measurement id (active by default; override with
 // GA_MEASUREMENT_ID, or set empty to disable the tag entirely).
@@ -155,15 +191,17 @@ export function siteFooter(lang) {
   if (lang === "ja") {
     return '<footer class="site-footer"><div class="footer-inner"><div class="footer-grid">' +
       footerCol("ゲーム", [["まち針ゲームを遊ぶ", "/ja/"], ["まち針ゲームの遊び方", "/ja/guides/how-to-play/"], ["まち針ゲームのコツ・攻略", "/ja/guides/tips/"], ["レベルについて", "/ja/levels/"]]) +
-      footerCol("サイト", [["このサイトについて", "/ja/about/"], ["よくある質問", "/ja/faq/"], ["プライバシーポリシー", "/ja/privacy/"], ["利用規約", "/ja/terms/"]]) +
+      footerCol("サイト", [["このサイトについて", "/ja/about/"], ["よくある質問", "/ja/faq/"], ["お問い合わせ", "/ja/contact/"], ["プライバシーポリシー", "/ja/privacy/"], ["利用規約", "/ja/terms/"]]) +
       footerCol("言語", [["English", "/"], ["日本語", "/ja/"]]) +
-      '</div><p class="footer-note">このサイトは独立したファンメイドのブラウザゲームです。特定の原作者、出版社、公式サイトとは提携・承認関係にありません。CoreBall は当サイトが独自に実装したゲームです。</p></div></footer>';
+      '</div><p class="footer-note">このサイトは独立したファンメイドのブラウザゲームです。特定の原作者、出版社、公式サイトとは提携・承認関係にありません。CoreBall は当サイトが独自に実装したゲームです。</p>' +
+      '<p class="footer-author">コンテンツ制作・運営: Coreball Online ／ 最終更新: ' + SITE_UPDATED_LABEL.ja + ' ／ <a href="/ja/contact/">お問い合わせ</a></p></div></footer>';
   }
   return '<footer class="site-footer"><div class="footer-inner"><div class="footer-grid">' +
     footerCol("Game", [["Play Coreball", "/"], ["How to Play", "/guides/how-to-play/"], ["Tips & Tricks", "/guides/tips/"], ["Levels", "/levels/"]]) +
-    footerCol("Site", [["About", "/about/"], ["FAQ", "/faq/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]]) +
+    footerCol("Site", [["About", "/about/"], ["FAQ", "/faq/"], ["Contact", "/contact/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]]) +
     footerCol("Languages", [["English", "/"], ["日本語", "/ja/"]]) +
-    '</div><p class="footer-note">This is an independent fan-made browser game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website. CoreBall is an original implementation.</p></div></footer>';
+    '</div><p class="footer-note">This is an independent fan-made browser game inspired by classic Coreball-style gameplay. It is not affiliated with or endorsed by any original publisher or website. CoreBall is an original implementation.</p>' +
+    '<p class="footer-author">Content maintained by Coreball Online · Last updated: ' + SITE_UPDATED_LABEL.en + ' · <a href="/contact/">Contact</a></p></div></footer>';
 }
 
 function footerCol(title, links) {
@@ -309,9 +347,12 @@ export function webSiteSchema(lang, path) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
+    alternateName: "Coreball Online",
     url: SITE_ORIGIN + homePath(lang),
     inLanguage: lang,
     description: lang === "ja" ? "まち針ゲームを無料で遊べるブラウザゲーム。" : "Play Coreball online free in your browser.",
+    sameAs: [SITE_REPO],
+    publisher: brandNode(),
   };
 }
 
@@ -328,6 +369,8 @@ export function webApplicationSchema(lang, path, description) {
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     browserRequirements: "Requires JavaScript and an HTML5 canvas-capable browser.",
     featureList: ["500 levels", "Touch and mouse controls", "No registration", "Free to play"],
+    sameAs: [SITE_REPO],
+    ...workMeta(),
   };
 }
 
@@ -345,6 +388,7 @@ export function videoGameSchema(lang, path, description) {
     inLanguage: lang,
     isAccessibleForFree: true,
     description,
+    ...workMeta(),
   };
 }
 
@@ -352,6 +396,7 @@ export function faqSchema(qa) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    ...workMeta(),
     mainEntity: qa.map((q) => ({
       "@type": "Question",
       name: q.q,
@@ -382,6 +427,7 @@ export function articleSchema(lang, path, title, description) {
     inLanguage: lang,
     url: SITE_ORIGIN + path,
     isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_ORIGIN + homePath(lang) },
+    ...workMeta(),
   };
 }
 
@@ -393,6 +439,7 @@ export function howToSchema(lang, path, title, description, steps) {
     description,
     inLanguage: lang,
     url: SITE_ORIGIN + path,
+    ...workMeta(),
     step: steps.map((s, i) => ({ "@type": "HowToStep", position: i + 1, text: s })),
   };
 }
@@ -405,6 +452,7 @@ export function webPageSchema(lang, path, title, description) {
     description,
     inLanguage: lang,
     url: SITE_ORIGIN + path,
+    ...workMeta(),
   };
 }
 
@@ -416,5 +464,18 @@ export function aboutPageSchema(lang, path, title, description) {
     description,
     inLanguage: lang,
     url: SITE_ORIGIN + path,
+    ...workMeta(),
+  };
+}
+
+export function contactPageSchema(lang, path, title, description) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: title,
+    description,
+    inLanguage: lang,
+    url: SITE_ORIGIN + path,
+    ...workMeta(),
   };
 }

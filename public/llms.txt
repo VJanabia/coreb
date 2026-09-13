@@ -1,0 +1,49 @@
+# Coreball Online
+
+> Coreball Online is a free browser game: you fire pins from the bottom of the screen into a small rotating core, and you must not touch the pins that are already inserted. 500 fixed, reproducible levels. No account, no download, no plugin. English at / and Japanese (まち針ゲーム) at /ja/.
+
+## Key facts
+
+- Game type: single-player browser arcade/timing game rendered with the HTML5 canvas element.
+- Levels: 500, each with a fixed layout (deterministic per level number).
+- Controls: mouse click, touch tap, or Space/Enter. P pauses, R restarts.
+- Fail state: touching an existing pin ends the run; tapping the screen restarts the same level instantly.
+- Progress: the highest unlocked level and the sound setting are stored locally in the browser (localStorage). There are no accounts and no server-side profiles.
+- Languages: English (/) and Japanese (/ja/) on separate URLs with reciprocal hreflang.
+- Advertising: Google AdSense slots only, placed outside the game area.
+- Independence: this is an independent fan-made game inspired by classic Coreball-style gameplay and is not affiliated with any original publisher.
+
+## Main pages (English)
+
+- https://coreball.online/ — play Coreball online, controls, tips and FAQ
+- https://coreball.online/levels/ — how the 500 levels and the difficulty progression work
+- https://coreball.online/guides/ — guides index
+- https://coreball.online/guides/how-to-play/ — rules, controls, collision behaviour
+- https://coreball.online/guides/tips/ — timing tips
+- https://coreball.online/faq/ — frequently asked questions
+- https://coreball.online/about/ — about the project, originality and independence
+- https://coreball.online/contact/ — contact
+- https://coreball.online/privacy/ — privacy policy
+- https://coreball.online/terms/ — terms of use
+
+## Main pages (Japanese)
+
+- https://coreball.online/ja/ — まち針ゲームを無料で遊ぶ
+- https://coreball.online/ja/levels/ — 500レベルの仕組みと難易度
+- https://coreball.online/ja/guides/how-to-play/ — 遊び方
+- https://coreball.online/ja/guides/tips/ — コツ・攻略
+- https://coreball.online/ja/faq/ — よくある質問
+- https://coreball.online/ja/about/ — このサイトについて
+- https://coreball.online/ja/contact/ — お問い合わせ
+- https://coreball.online/ja/privacy/ — プライバシーポリシー
+- https://coreball.online/ja/terms/ — 利用規約
+
+## Contact
+
+- Email: admin@coreball.online
+- Contact page: https://coreball.online/contact/
+- Source repository: https://github.com/VJanabia/coreb
+
+## Sitemap
+
+- https://coreball.online/sitemap.xml

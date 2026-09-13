@@ -12,6 +12,7 @@ import {
   webApplicationSchema,
   webPageSchema,
   aboutPageSchema,
+  contactPageSchema,
   webSiteSchema,
 } from "./site.js";
 
@@ -68,6 +69,7 @@ export const pages = [
         site.adTop() +
         "<h2>How to Play Coreball</h2>" +
         "<ol><li>Press <strong>Play</strong> or tap the game area.</li><li>Watch the core rotate and find an open gap between the pins already attached.</li><li>Click, tap, or press <strong>Space</strong> to fire the pin waiting below the core.</li><li>Land every required pin without touching an existing pin.</li><li>Clear the level to unlock the next one. Lose a run? Tap anywhere to try again at once.</li></ol>" +
+        "<p class='sources'>Coreball is drawn with the HTML5 <code>canvas</code> element, which the WHATWG HTML Standard defines as “a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly” (<a href='https://html.spec.whatwg.org/multipage/canvas.html' rel='noopener nofollow' target='_blank'>Source: WHATWG HTML Standard</a>). Your unlocked level is kept on your own device with the browser's localStorage API (<a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage' rel='noopener nofollow' target='_blank'>Source: MDN Web Docs</a>), and mouse, touch and keyboard input are handled through pointer and key events (<a href='https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events' rel='noopener nofollow' target='_blank'>Source: MDN Web Docs</a>).</p>" +
         "<h2>Coreball Levels</h2>" +
         "<p>All 500 levels start with pins already inserted into the core — Level 1 begins with two. Difficulty grows through more pre-inserted pins, higher rotation speeds, direction changes, and denser layouts, while your highest unlocked level is saved automatically in the browser. Every level is fixed and reproducible, so practice pays off.</p>" +
         "<p><a class='btn btn-primary' href='" + LEVELS + "'>Explore All 500 Coreball Levels</a></p>" +
@@ -238,8 +240,10 @@ export const pages = [
         "<p>CoreBall is an independent fan-made project. It is not affiliated with, or endorsed by, any original publisher, trademark holder, or competing Coreball website. We do not claim to be the official or original Coreball.</p>" +
         "<h2>What You Get</h2>" +
         "<ul><li>500 deterministic levels with gradually increasing difficulty.</li><li>English and Japanese versions on separate URLs.</li><li>Mouse, touch, and keyboard controls.</li><li>Local progress saving — no account required.</li><li>No login, no download, and no forced tutorial.</li></ul>" +
+        "<h2>Who Maintains This Site</h2>" +
+        "<p>CoreBall is published and maintained by Coreball Online. Content on this site is written and reviewed by the same team that develops the game, and the game's source code is public on <a href='https://github.com/VJanabia/coreb' rel='noopener' target='_blank'>GitHub</a>.</p>" +
         "<h2>Contact</h2>" +
-        "<p>For questions or feedback, email <a href='mailto:admin@coreball.online'>admin@coreball.online</a>.</p>" +
+        "<p>For questions or feedback, email <a href='mailto:admin@coreball.online'>admin@coreball.online</a>, or use our <a href='/contact/'>contact page</a>.</p>" +
         "</main>";
     },
     jsonLd() {
@@ -324,6 +328,39 @@ export const pages = [
       return [
         breadcrumbSchema([["Home", "/"], ["Terms", "/terms/"]]),
         webPageSchema("en", "/terms/", "Terms of Use", "CoreBall terms of use."),
+      ];
+    },
+  },
+
+  {
+    path: "/contact/",
+    file: "contact/index.html",
+    lang: "en",
+    title: "Contact Coreball Online – Support & Feedback | CoreBall",
+    description:
+      "Contact Coreball Online for bug reports, level and content feedback, accessibility issues, or advertising questions. Email admin@coreball.online.",
+    imageAlt: "Contact Coreball Online.",
+    main() {
+      return "<main id='main' class='legal'>" +
+        breadcrumbsHtml([["Home", "/"], ["Contact", "/contact/"]]) +
+        "<h1>Contact Coreball Online</h1>" +
+        "<p class='lead'>CoreBall is maintained by a small team, so we read every message. Email is the fastest way to reach us.</p>" +
+        "<h2>Email</h2>" +
+        "<p><a href='mailto:admin@coreball.online'>admin@coreball.online</a></p>" +
+        "<h2>What We Can Help With</h2>" +
+        "<ul><li><strong>Bug reports</strong> — tell us the level number, your browser and device, and what happened.</li><li><strong>Level or content feedback</strong> — if a layout feels unfair or a page is unclear.</li><li><strong>Accessibility issues</strong> — anything that makes the game harder to use with a keyboard, screen reader or zoom.</li><li><strong>Advertising and partnerships</strong> — questions about the ad slots on this site.</li><li><strong>Corrections</strong> — if something we wrote about the game or its technology is wrong.</li></ul>" +
+        "<h2>Before You Write</h2>" +
+        "<p>Many questions are already answered in the <a href='" + FAQ + "'>FAQ</a>, the <a href='" + HOW + "'>How to Play guide</a>, or the <a href='" + LEVELS + "'>levels page</a>. The game needs no account, so we cannot recover progress that was cleared from your browser storage.</p>" +
+        "<h2>Response Time</h2>" +
+        "<p>We aim to reply within a few business days. Abuse reports and broken-level reports are prioritised.</p>" +
+        "<h2>Who You Are Contacting</h2>" +
+        "<p>Coreball Online — the publisher and maintainer of this site and its game content. See <a href='/about/'>About CoreBall</a> for details.</p>" +
+        "</main>";
+    },
+    jsonLd() {
+      return [
+        breadcrumbSchema([["Home", "/"], ["Contact", "/contact/"]]),
+        contactPageSchema("en", "/contact/", "Contact Coreball Online", "Contact details for Coreball Online: bug reports, feedback, accessibility and advertising questions."),
       ];
     },
   },

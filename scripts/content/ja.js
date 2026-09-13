@@ -12,6 +12,7 @@ import {
   webApplicationSchema,
   webPageSchema,
   aboutPageSchema,
+  contactPageSchema,
   webSiteSchema,
 } from "./site.js";
 
@@ -68,6 +69,7 @@ export const pages = [
         site.adTop() +
         "<h2>まち針ゲームの遊び方</h2>" +
         "<ol><li>「今すぐ遊ぶ」を押すか、ゲーム画面をタップします。</li><li>回転するコアをよく見て、すでに刺さっている針の間からすき間を探します。</li><li>画面のタップ、クリック、またはスペースキーで針を発射します。</li><li>すでに刺さっている針に当てず、必要な本数だけ刺します。</li><li>レベルをクリアすると次のレベルが解放されます。失敗してもタップするだけで同じレベルからすぐ再開できます。</li></ol>" +
+        "<p class='sources'>当サイトのゲームは HTML5 の <code>canvas</code> 要素で描画しています。WHATWG の HTML Standard は canvas を「a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly」と定義しています（出典: <a href='https://html.spec.whatwg.org/multipage/canvas.html' rel='noopener nofollow' target='_blank'>WHATWG HTML Standard</a>）。解放済みレベルは端末内の localStorage に保存し（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）、マウス・タッチ・キーボードの入力はポインターイベントとキーイベントで処理しています（出典: <a href='https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events' rel='noopener nofollow' target='_blank'>MDN Web Docs</a>）。</p>" +
         "<h2>レベルについて</h2>" +
         "<p>500レベルすべてに最初から針が刺さっており（レベル1は2本）、残ったすき間に針を差し込んでいきます。針の本数、コアの回転速度、回転方向の変化、密度の高い配置で難易度が上がり、進捗はブラウザに自動保存されます。各レベルのレイアウトは固定されているため、練習すれば確実に攻略できます。</p>" +
         "<p><a class='btn btn-primary' href='" + LEVELS + "'>500レベルの仕組みを詳しく見る</a></p>" +
@@ -238,8 +240,10 @@ export const pages = [
         "<p>CoreBall は独立したファンメイドのプロジェクトです。特定の原作者、出版社、商標権者、または他の Coreball 系サイトとは提携・承認関係にありません。当サイトが「公式」や「原作」を名乗ることはありません。</p>" +
         "<h2>主な特徴</h2>" +
         "<ul><li>徐々に難しくなる500レベルのオリジナルステージ。</li><li>英語版と日本語版を別々のURLで提供。</li><li>マウス・タッチ・キーボードに対応。</li><li>ブラウザへの進捗保存（アカウント不要）。</li><li>ログイン不要、ダウンロード不要、強制チュートリアルなし。</li></ul>" +
+        "<h2>運営について</h2>" +
+        "<p>当サイトのコンテンツは Coreball Online が制作・運営しています。ゲームのソースコードは <a href='https://github.com/VJanabia/coreb' rel='noopener' target='_blank'>GitHub</a> で公開しています。</p>" +
         "<h2>お問い合わせ</h2>" +
-        "<p>ご意見・ご質問は <a href='mailto:admin@coreball.online'>admin@coreball.online</a> までお送りください。</p>" +
+        "<p>ご意見・ご質問は <a href='mailto:admin@coreball.online'>admin@coreball.online</a> まで、または<a href='/ja/contact/'>お問い合わせページ</a>をご利用ください。</p>" +
         "</main>";
     },
     jsonLd() {
@@ -324,6 +328,39 @@ export const pages = [
       return [
         breadcrumbSchema([["ホーム", "/ja/"], ["利用規約", "/ja/terms/"]]),
         webPageSchema("ja", "/ja/terms/", "利用規約", "まち針ゲーム CoreBall の利用規約。"),
+      ];
+    },
+  },
+
+  {
+    path: "/ja/contact/",
+    file: "ja/contact/index.html",
+    lang: "ja",
+    title: "お問い合わせ｜まち針ゲーム CoreBall",
+    description:
+      "まち針ゲーム（CoreBall）へのお問い合わせページ。不具合の報告、レベルや内容へのご意見、アクセシビリティ、広告に関するご質問を受け付けています。",
+    imageAlt: "まち針ゲーム CoreBall へのお問い合わせ",
+    main() {
+      return "<main id='main' class='legal'>" +
+        breadcrumbsHtml([["ホーム", "/ja/"], ["お問い合わせ", "/ja/contact/"]]) +
+        "<h1>お問い合わせ</h1>" +
+        "<p class='lead'>CoreBall は小規模なチームで運営しており、いただいたメッセージはすべて目を通しています。メールでのご連絡が最も早い方法です。</p>" +
+        "<h2>メール</h2>" +
+        "<p><a href='mailto:admin@coreball.online'>admin@coreball.online</a></p>" +
+        "<h2>お問い合わせいただける内容</h2>" +
+        "<ul><li><strong>不具合の報告</strong> — レベル番号、お使いのブラウザと端末、起きたことをお知らせください。</li><li><strong>レベル・内容へのご意見</strong> — 配置が不当に感じる場合や、説明が分かりにくい箇所など。</li><li><strong>アクセシビリティ</strong> — キーボード操作、読み上げ、拡大表示などで困る点。</li><li><strong>広告・提携について</strong> — 当サイトの広告枠に関するご質問。</li><li><strong>訂正のご連絡</strong> — ゲームや技術に関する記述に誤りがある場合。</li></ul>" +
+        "<h2>お問い合わせの前に</h2>" +
+        "<p>よくある質問は <a href='" + FAQ + "'>FAQ</a>、操作方法は <a href='" + HOW + "'>遊び方</a>、レベルの仕組みは <a href='" + LEVELS + "'>レベル解説</a> にまとめています。アカウント機能はないため、ブラウザのデータを消去した後の進捗を復元することはできません。</p>" +
+        "<h2>返信について</h2>" +
+        "<p>通常は数営業日以内に返信いたします。不正利用の報告やプレイ不能なレベルの報告を優先します。</p>" +
+        "<h2>運営者</h2>" +
+        "<p>Coreball Online（当サイトおよびゲームコンテンツの制作・運営）。詳しくは<a href='/ja/about/'>このサイトについて</a>をご覧ください。</p>" +
+        "</main>";
+    },
+    jsonLd() {
+      return [
+        breadcrumbSchema([["ホーム", "/ja/"], ["お問い合わせ", "/ja/contact/"]]),
+        contactPageSchema("ja", "/ja/contact/", "お問い合わせ", "まち針ゲーム CoreBall へのお問い合わせ窓口。不具合報告、ご意見、広告に関するご質問。"),
       ];
     },
   },
