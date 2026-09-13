@@ -67,9 +67,9 @@ const HEAD_PER = 0.0016;
 const HEAD_MIN = 0.08;
 const MARGIN = 0.8;
 const SHAFT_MARGIN = 1.0;
-const WINDUP = 0.05;       // short pre-launch cue before the pin flies
-const FLIGHT_TIME = 0.045; // target fly time so the shot is visible on phones
-const FLIGHT_TIMEOUT = 0.5; // watchdog: a stuck flight lands instead of hanging
+const WINDUP = 0.035;      // short pre-launch cue before the pin flies
+const FLIGHT_TIME = 0.03;  // target fly time (fast, but visible on small canvases)
+const FLIGHT_TIMEOUT = 0.25; // watchdog: a stuck flight lands quickly, never hangs
 const MAX_SPEED = (95 * Math.PI) / 180; // rotation cap (rad/s)
 
 const PIN_COLORS = [
@@ -148,8 +148,11 @@ export class CoreballEngine {
     // flight last about FLIGHT_TIME so the player can actually see the pin move
     // (on a small phone canvas the old speed made it a single-frame teleport).
     const flyDist = Math.max(8, this.h / 2 - this.readyOffset - this.rh);
+    // never derive the flight speed from a degenerate (0-sized) layout: that
+    // produced a crawling pin and a visible multi-hundred-ms delay.
+    const dim = Math.max(w, h) > 0 ? Math.max(w, h) : 400;
     const speedForVisibility = flyDist / FLIGHT_TIME;
-    this.projSpeed = Math.min(Math.max(w, h) * 4.0, Math.max(speedForVisibility, Math.max(w, h) * 1.2));
+    this.projSpeed = Math.min(dim * 4.0, Math.max(speedForVisibility, dim * 1.2));
     if (hadProjectile) {
       this.projectile.x = this.cx;
       this.projectile.y = this.cy + Math.max(keepRadius, this.rh + 1);
