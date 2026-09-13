@@ -67,7 +67,9 @@ const HEAD_PER = 0.0016;
 const HEAD_MIN = 0.08;
 const MARGIN = 0.8;
 const SHAFT_MARGIN = 1.0;
-const WINDUP = 0.04;       // short pre-launch cue before the pin flies
+const WINDUP = 0.05;       // short pre-launch cue before the pin flies
+const FLIGHT_TIME = 0.045; // target fly time so the shot is visible on phones
+const FLIGHT_TIMEOUT = 0.5; // watchdog: a stuck flight lands instead of hanging
 const MAX_SPEED = (95 * Math.PI) / 180; // rotation cap (rad/s)
 
 const PIN_COLORS = [
@@ -130,14 +132,28 @@ export class CoreballEngine {
   }
 
   resize(w: number, h: number): void {
+    // keep an in-flight pin on the launch lane when the geometry changes
+    // (mobile address bar / orientation changes must not strand it)
+    const prevCx = this.cx, prevCy = this.cy;
+    const hadProjectile = this.projectile && this.projectile.active;
+    const keepRadius = hadProjectile ? Math.hypot(this.projectile.x - prevCx, this.projectile.y - prevCy) : 0;
     this.w = w; this.h = h; this.cx = w / 2; this.cy = h / 2;
     this.R = Math.min(w, h) * CORE_RATIO;
     const scale = this.total > 0 ? headScale(this.total) : HEAD_BASE;
     this.headR = Math.max(5.5, this.R * scale);
     this.shaftLen = this.R * SHAFT_RATIO;
     this.rh = this.R + this.shaftLen;
-    this.projSpeed = Math.max(w, h) * 4.0;
     this.readyOffset = Math.max(18, this.headR * 2.2);
+    // Fly distance = launch radius - ring radius. Pick a speed that makes the
+    // flight last about FLIGHT_TIME so the player can actually see the pin move
+    // (on a small phone canvas the old speed made it a single-frame teleport).
+    const flyDist = Math.max(8, this.h / 2 - this.readyOffset - this.rh);
+    const speedForVisibility = flyDist / FLIGHT_TIME;
+    this.projSpeed = Math.min(Math.max(w, h) * 4.0, Math.max(speedForVisibility, Math.max(w, h) * 1.2));
+    if (hadProjectile) {
+      this.projectile.x = this.cx;
+      this.projectile.y = this.cy + Math.max(keepRadius, this.rh + 1);
+    }
   }
 
   startLevel(id: number): void {
@@ -279,13 +295,28 @@ export class CoreballEngine {
     const dx = this.cx - p.x;
     const dy = this.cy - p.y;
     const dist = Math.hypot(dx, dy);
+    // A degenerate layout (0-size canvas, mid-flight resize, NaN) must never
+    // leave the pin hanging in the launch lane: recover instead of stalling.
+    if (!Number.isFinite(dist) || !Number.isFinite(this.rh) || this.rh <= 0) {
+      p.x = this.cx;
+      p.y = this.h - this.readyOffset;
+      this.resize(this.w, this.h);
+      return;
+    }
+    // watchdog: if the flight somehow exceeds its budget, land the pin now
+    p.phaseT += dt;
+    if (p.phaseT > FLIGHT_TIMEOUT) {
+      this.attachProjectile();
+      return;
+    }
     // attach when the pin's tip reaches the core surface (knob at radius rh)
     if (dist <= this.rh) {
       this.attachProjectile();
       return;
     }
     const step = this.projSpeed * dt;
-    const move = Math.min(step, dist - this.rh);
+    // always move at least a fraction of a pixel so the pin visibly travels
+    const move = Math.max(Math.min(step, dist - this.rh), Math.min(0.5, dist - this.rh));
     const nx = dx / dist;
     const ny = dy / dist;
     p.x += nx * move;

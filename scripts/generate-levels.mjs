@@ -17,7 +17,7 @@ const HEAD_PER = 0.0016;       // shrink per extra pin
 const HEAD_MIN = 0.08;
 const GAME_MARGIN = 0.8;       // game fails when head distance < 2*headR*MARGIN
 const SHAFT_FACTOR = 1.0;      // pin head vs projectile shaft threshold, in headR units
-const FLIGHT_SECONDS = 0.035;  // projectile fly time (windup is excluded: no collision there)
+const FLIGHT_SECONDS = 0.05;   // projectile fly time incl. margin (windup excluded: no collision there)
 const MARGIN_DEG = 2;          // extra gap budget so the timing window stays humane
 
 const headScale = (total) => Math.max(HEAD_MIN, HEAD_BASE - HEAD_PER * total);

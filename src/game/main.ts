@@ -265,16 +265,34 @@ btnRestart.addEventListener("click", () => {
   startLevel(currentLevel);
 });
 
-canvas.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  if (engine.state === "ready") play();
-  else if (engine.state === "playing") engine.fire();
-  else if (engine.state === "failed" && performance.now() - failAt > RETRY_DELAY_MS) {
+let lastTapAt = 0;
+
+// Single entry point for every tap/click, whichever event the browser delivers.
+function handleGameTap(): void {
+  const now = performance.now();
+  if (now - lastTapAt < 120) return; // dedupe pointerdown + pointerup/click
+  if (engine.state === "ready") {
+    lastTapAt = now;
+    play();
+  } else if (engine.state === "playing") {
+    engine.fire();
+    lastTapAt = now;
+  } else if (engine.state === "failed" && now - failAt > RETRY_DELAY_MS) {
+    lastTapAt = now;
     retryLevel();
   } else if (engine.state === "success") {
+    lastTapAt = now;
     nextFromSuccess();
   }
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  handleGameTap();
 });
+// fallback: some mobile browsers / in-app WebViews drop pointerdown on canvas
+canvas.addEventListener("pointerup", () => handleGameTap());
+canvas.addEventListener("click", () => handleGameTap());
 
 overlay.addEventListener("pointerdown", (e) => {
   if (engine.state !== "ready") return;
