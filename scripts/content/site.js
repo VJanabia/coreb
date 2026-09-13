@@ -64,11 +64,17 @@ const AD_NATIVE_ID = "bbba1a441b21e913346710c8cfd9734d";
 
 export function nativeBannerSlot() {
   if (!AD_NATIVE_ENABLED) return "";
-  // The async invoke script + its container are placed together in the body so
-  // the ad only ever loads on pages that actually render the slot.
-  return '<div class="native-ad"><span class="ad-label">Advertisement</span>' +
+  // The async invoke script + its container live together in the body. The
+  // wrapper starts collapsed (no box, no reserved space, label hidden) and only
+  // becomes visible once the network actually renders an ad inside it; if it
+  // never fills, the wrapper removes itself so no empty frame is left behind.
+  const boxId = "container-" + AD_NATIVE_ID;
+  const wrapId = "native-ad-" + AD_NATIVE_ID;
+  return '<div class="native-ad ad-pending" id="' + wrapId + '"><span class="ad-label">Advertisement</span>' +
     '<script async="async" data-cfasync="false" src="https://' + AD_NATIVE_DOMAIN + '/' + AD_NATIVE_ID + '/invoke.js"></script>' +
-    '<div id="container-' + AD_NATIVE_ID + '"></div></div>';
+    '<div id="' + boxId + '"></div>' +
+    adRevealScript(wrapId, "#" + boxId) +
+    "</div>";
 }
 
 export function escapeHtml(s) {
@@ -117,17 +123,34 @@ export function adBottom() {
   return adUnit(AD_SLOT_BOTTOM, true);
 }
 
+// Shared tiny helper: an ad wrapper only takes space once it actually has an ad.
+// While pending it is collapsed to zero height (still laid out, so ad scripts can
+// measure width); if nothing fills it, the wrapper removes itself completely.
+function adRevealScript(wrapId, boxSelector) {
+  return "<script>(function(){var w=document.getElementById('" + wrapId + "');if(!w)return;" +
+    "var b=w.querySelector('" + boxSelector + "');if(!b)return;var done=false,n=0;" +
+    "function filled(){return b.childElementCount>0||b.offsetHeight>8||(b.textContent||'').trim().length>0||" +
+    "b.getAttribute('data-ad-status')==='filled';}" +
+    "function check(){if(done)return;if(filled()){done=true;w.classList.remove('ad-pending');w.hidden=false;" +
+    "clearInterval(t);clearTimeout(give);if(o)o.disconnect();}}" +
+    "var o=window.MutationObserver?new MutationObserver(check):null;if(o)o.observe(b,{childList:true,subtree:true,attributes:true});" +
+    "var t=setInterval(check,400);" +
+    "var give=setTimeout(function(){if(done)return;check();if(!done){done=true;clearInterval(t);if(o)o.disconnect();" +
+    "w.parentNode&&w.parentNode.removeChild(w);}},7000);" +
+    "check();})();<\/script>";
+}
+
 export function adUnit(slot, compact = false) {
-  // "0000000000" is the sentinel for "no real ad unit id configured yet":
-  // keep the CLS-safe placeholder instead of pushing an invalid ad request.
-  if (!AD_PUB_ID || slot === "0000000000") {
-    const cls = compact ? "ad-slot ad-slot--compact" : "ad-slot";
-    return '<div class="' + cls + '" aria-hidden="true"><span>Advertisement</span></div>';
-  }
-  return '<div class="ad-slot' + (compact ? " ad-slot--compact" : "") + '">' +
+  // "0000000000" is the sentinel for "no real ad unit id configured yet".
+  // In that case emit NOTHING: no empty placeholder box, no reserved space.
+  if (!AD_PUB_ID || slot === "0000000000") return "";
+  const id = "adslot-" + escapeHtml(slot);
+  return '<div class="ad-slot ad-pending' + (compact ? " ad-slot--compact" : "") + '" id="' + id + '">' +
     '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-' + escapeHtml(AD_PUB_ID) + '" ' +
     'data-ad-slot="' + escapeHtml(slot) + '" data-ad-format="auto" data-full-width-responsive="true"></ins>' +
-    '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>';
+    '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>' +
+    adRevealScript(id, "ins.adsbygoogle") +
+    "</div>";
 }
 
 export function headMeta({ lang, path, title, description, imageAlt, jsonLd, robots = "index, follow, max-image-preview:large" }) {
