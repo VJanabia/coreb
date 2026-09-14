@@ -87,7 +87,11 @@ const modalGrid = $<HTMLDivElement>("level-grid");
 const btnCloseModal = $<HTMLButtonElement>("level-close");
 
 let progress: Progress = loadProgress();
-let currentLevel = Math.max(1, Math.min(LEVEL_COUNT, progress.unlocked));
+// Continue where the player left off: the next uncleared level, which stays
+// inside the unlocked range (the first 50 levels are always playable).
+const nextPlayable = () =>
+  Math.max(1, Math.min(LEVEL_COUNT, progress.unlocked, Math.max(1, progress.cleared + 1)));
+let currentLevel = nextPlayable();
 let hasStarted = false;
 let bannerTimer = 0;
 let toastTimer = 0;
@@ -115,8 +119,9 @@ function handleStateChange(state: string, level: number): void {
     showPanel(readyPanel);
     readyTitle.textContent = t("play");
     readySub.textContent = t("playSub");
-    const label = progress.unlocked > 1
-      ? fmt(t("continueLabel"), [progress.unlocked])
+    const resumeAt = nextPlayable();
+    const label = resumeAt > 1
+      ? fmt(t("continueLabel"), [resumeAt])
       : t("play");
     btnPlay.textContent = label;
     hudStatus.textContent = t("statusReady");
@@ -128,6 +133,7 @@ function handleStateChange(state: string, level: number): void {
     // now; a "tap to next" toast appears once the fly-off finishes ("success").
     hideOverlay();
     hudStatus.textContent = fmt(t("statusSuccess"), [level]);
+    progress.cleared = Math.min(LEVEL_COUNT, Math.max(progress.cleared, level));
     progress.unlocked = Math.min(LEVEL_COUNT, Math.max(progress.unlocked, level + 1));
     saveProgress(progress);
     track("level_complete", { level });
@@ -356,7 +362,7 @@ function buildLevelGrid(): void {
     btn.type = "button";
     btn.className = "level-btn";
     if (lv === currentLevel) btn.classList.add("level-btn-current");
-    if (lv < progress.unlocked) {
+    if (lv <= progress.cleared) {
       btn.classList.add("level-btn-done");
       btn.textContent = lv + " \u2713";
       btn.setAttribute("aria-label", fmt(t("completed"), [lv]));
